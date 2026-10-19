@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+spanish_helper/user_files/
+output/
+.playwright-cli/
+.env
+.env.*
+!.env.example
+*.anki2
+*.anki2-*
+*.db
+*.db2

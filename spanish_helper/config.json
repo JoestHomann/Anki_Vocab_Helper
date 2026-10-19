@@ -1,0 +1,11 @@
+{
+  "enabled": true,
+  "word_field": "",
+  "example_field": "",
+  "hint_field": "",
+  "online_audio": true,
+  "online_dictionary": true,
+  "ai_hints": false,
+  "model": "gpt-4.1-mini",
+  "slow_audio": false
+}

@@ -1,0 +1,1339 @@
+[
+  {
+    "word": "el canal",
+    "meaning": "Kanal (soz. Netzwerk)",
+    "definition": "Depresión artificial cóncava y alargada en el terreno, para hacer fluir agua u otro líquido en ella.",
+    "score": 0.7348392605781555,
+    "margin": 0.05011361837387085
+  },
+  {
+    "word": "la papa (LA)",
+    "meaning": "Kartoffel",
+    "definition": "(Solanum tuberosum) Planta anual, de tallo erecto, que puede medir hasta 1 m de altura. Sus hojas son compuestas, con 7 foliolos de forma lanceolada, con grados variables de pilosidad. Las flores tienen forma de estrella y sus pétalos están fusionados.",
+    "score": 0.7421908974647522,
+    "margin": 0.07202285528182983
+  },
+  {
+    "word": "aburrir",
+    "meaning": "langweilen",
+    "definition": "Abandonar, un animal, sus huevos, sus crías o su nido.",
+    "score": 0.7541014552116394,
+    "margin": 0.0008608698844909668
+  },
+  {
+    "word": "cantar",
+    "meaning": "singen",
+    "definition": "Usar la voz para emitir sonido melodioso, puede ser pronunciando palabras.",
+    "score": 0.7548961639404297,
+    "margin": 0.07352578639984131
+  },
+  {
+    "word": "la patata / la papa",
+    "meaning": "die Kartoffel",
+    "definition": "(Solanum tuberosum) Planta anual, de tallo erecto, que puede medir hasta 1 m de altura. Sus hojas son compuestas, con 7 foliolos de forma lanceolada, con grados variables de pilosidad. Las flores tienen forma de estrella y sus pétalos están fusionados.",
+    "score": 0.7550230622291565,
+    "margin": 0.05897790193557739
+  },
+  {
+    "word": "afirmativo/-a",
+    "meaning": "bejaht",
+    "definition": "Manera formal de afirmar algo",
+    "score": 0.7560049295425415,
+    "margin": 0.0029251575469970703
+  },
+  {
+    "word": "odiar",
+    "meaning": "hassen",
+    "definition": "Sentir o experimentar emociones fuertes de rechazo, antipatía, aversión , deseos de destrucción o de mal para el objeto en cuestión.",
+    "score": 0.7602478861808777,
+    "margin": 0.0032491683959960938
+  },
+  {
+    "word": "la barba",
+    "meaning": "der Bart",
+    "definition": "Agrupación de pelos que en los varones adultos crece en las partes inferior y media de la cara.",
+    "score": 0.7603389024734497,
+    "margin": 0.10550642013549805
+  },
+  {
+    "word": "contrastar",
+    "meaning": "gegeniiberstellen",
+    "definition": "Distinguirse claramente una cosa de otra, siendo opuestas en algún respecto.",
+    "score": 0.7630615234375,
+    "margin": 0.008258581161499023
+  },
+  {
+    "word": "sonar",
+    "meaning": "klingeln",
+    "definition": "Asesinar.",
+    "score": 0.7640748023986816,
+    "margin": 0.008255243301391602
+  },
+  {
+    "word": "el amarillo",
+    "meaning": "Gelb",
+    "definition": "Se dice de lo que refleja la luz amarilla, por lo que es percibido de este color por el ojo humano.",
+    "score": 0.7649544477462769,
+    "margin": 0.07825052738189697
+  },
+  {
+    "word": "la muela",
+    "meaning": "Backenzahn",
+    "definition": "Cada uno de los dientes que van detras de los caninos y premolares, cuya función es moler los alimentos masticados.",
+    "score": 0.7668823599815369,
+    "margin": 0.007808506488800049
+  },
+  {
+    "word": "la pimienta",
+    "meaning": "Pfeffer",
+    "definition": "Baya seca del pimentero, empleada como especia, de sabor picante y acre.",
+    "score": 0.767906665802002,
+    "margin": 0.08748549222946167
+  },
+  {
+    "word": "el verde",
+    "meaning": "Grün",
+    "definition": "Del color percibido por el ojo humano de la luz con una longitud de onda entre 520 nanómetros y 570 nanómetros, el color del follaje vivo o las esmeraldas.",
+    "score": 0.7681491374969482,
+    "margin": 0.045213937759399414
+  },
+  {
+    "word": "picante",
+    "meaning": "scharf",
+    "definition": "Salsa picante.",
+    "score": 0.769349217414856,
+    "margin": 0.0005113482475280762
+  },
+  {
+    "word": "el postre",
+    "meaning": "der Nachtisch",
+    "definition": "Fruta, dulce y otras cosas que se sirven al final de las comidas o banquetes.",
+    "score": 0.7701749205589294,
+    "margin": 0.012272119522094727
+  },
+  {
+    "word": "administrar",
+    "meaning": "verwalten",
+    "definition": "Dirigir alguna cosa (por ejemplo, una empresa u organización o grupo).",
+    "score": 0.7707817554473877,
+    "margin": 0.08493942022323608
+  },
+  {
+    "word": "el queso",
+    "meaning": "der Käse",
+    "definition": "Alimento obtenido al separar la parte sólida de la leche mediante la adición de cuajo, prensando o cociendo luego la pasta resultante y madurándola en un grado variable.",
+    "score": 0.7708780169487,
+    "margin": 0.08945375680923462
+  },
+  {
+    "word": "el plátano",
+    "meaning": "Banane",
+    "definition": "Fruto en forma de falsa baya, que alcanza de 7 a 30 cm de largo y hasta 5 de diámetro, presentándose en racimos compactos de hasta cientos de ejemplares. Está cubierta por un pericarpo coriáceo verde en el ejemplar inmaduro y amarillo intenso, rojo o bandeado verde y blanco al madurar. Es de forma lineal o falcada, entre cilíndrica y marcadamente angulosa según la variedad. El extremo basal se estrecha abruptamente hacia un pedicelo de 1 a 2 cm. La pulpa es blanca a amarilla, rica en almidón y dulce; en los plátanos puede resultar algo astringente o gomosa por su contenido en látex, farinosa y seca. Muy rara vez las variedades diploides o tetraploides producen semillas. En la nomenclatura vernácula a veces se traza una diferencia entre las bananas, consumidas crudas como fruta de postre, y los plátanos, que por su superior contenido en fécula deben asarse o freírse antes de su ingesta. La diferencia no se corresponde exactamente con ningún criterio genético, y en otras regiones los términos se consideran perfectamente sinónimos.",
+    "score": 0.7710102796554565,
+    "margin": 0.10855627059936523
+  },
+  {
+    "word": "verde",
+    "meaning": "grün",
+    "definition": "Del color percibido por el ojo humano de la luz con una longitud de onda entre 520 nanómetros y 570 nanómetros, el color del follaje vivo o las esmeraldas.",
+    "score": 0.7712818384170532,
+    "margin": 0.07592570781707764
+  },
+  {
+    "word": "la fresa",
+    "meaning": "die Erdbeere",
+    "definition": "Fruto de esta planta, un eterio carnoso de intenso color rosado y forma aproximadamente cónica, muy apreciado en gastronomía por su sabor dulce, ligeramente ácido e intenso aroma. Se consume crudo como fruta de postre y en numerosísimas preparaciones.",
+    "score": 0.7717962265014648,
+    "margin": 0.09600460529327393
+  },
+  {
+    "word": "reír (i)",
+    "meaning": "lachen",
+    "definition": "Mostrar un aspecto alegre.",
+    "score": 0.7727822661399841,
+    "margin": 0.0007253289222717285
+  },
+  {
+    "word": "reír(se) (i)",
+    "meaning": "lachen",
+    "definition": "Mostrar un aspecto alegre.",
+    "score": 0.7727822661399841,
+    "margin": 0.0007253289222717285
+  },
+  {
+    "word": "el pantalón",
+    "meaning": "die Hose",
+    "definition": "Prenda de vestir que tipicamente cubre desde la cintura hasta los tobillos, pero que puede ser más corto, y en que cada pierna está envuelta por separado.",
+    "score": 0.7729158997535706,
+    "margin": 0.10395795106887817
+  },
+  {
+    "word": "el salmón",
+    "meaning": "Lachs",
+    "definition": "(Salmo spp.) Por extensión, otros peces del mismo género que el salmón.",
+    "score": 0.7732905149459839,
+    "margin": 0.002904653549194336
+  },
+  {
+    "word": "el desierto",
+    "meaning": "die Wüste",
+    "definition": "Paisaje con muy escasa vegetación, generalmente muy árido.",
+    "score": 0.7733317613601685,
+    "margin": 0.13003462553024292
+  },
+  {
+    "word": "las escaleras (pl)",
+    "meaning": "Treppe",
+    "definition": "Construcción formada por una serie de escalones, permitiendo al usuario desplazarse entre los distintos planos de un edificio o lugar.",
+    "score": 0.7734805345535278,
+    "margin": 0.09450018405914307
+  },
+  {
+    "word": "la ciudad",
+    "meaning": "die Stadt",
+    "definition": "Asentamiento de gran tamaño y actividad primariamente industrial o de servicio, antes que agrícola.",
+    "score": 0.7737923860549927,
+    "margin": 0.060237884521484375
+  },
+  {
+    "word": "delgado/a",
+    "meaning": "schlank",
+    "definition": "De poca anchura corporal.",
+    "score": 0.7749356031417847,
+    "margin": 0.008288979530334473
+  },
+  {
+    "word": "la selva",
+    "meaning": "Urwald",
+    "definition": "Por extensión, confusión o desorden resultante de la abundancia de alguna cosa.",
+    "score": 0.7759679555892944,
+    "margin": 0.004098713397979736
+  },
+  {
+    "word": "trabajador/a (adj.)",
+    "meaning": "fleißig",
+    "definition": "Persona que se dedica a ejercer una actividad específica a cambio de una remuneración quincenal o mensual.",
+    "score": 0.7760008573532104,
+    "margin": 0.0036037564277648926
+  },
+  {
+    "word": "el montón",
+    "meaning": "Haufen",
+    "definition": "Porción de cal y arena que se amasa de una vez con agua.",
+    "score": 0.7762024402618408,
+    "margin": 0.007545888423919678
+  },
+  {
+    "word": "llover",
+    "meaning": "regnen",
+    "definition": "Caer agua del cielo.",
+    "score": 0.7763810753822327,
+    "margin": 0.000924229621887207
+  },
+  {
+    "word": "el guion",
+    "meaning": "Bindestrich (-)",
+    "definition": "Signo ortográfico (-) que se pone al fin del renglón que termina con parte de una palabra cuya otra parte, por no caber en él, se ha de escribir en el siguiente. Se emplea también para compuestos ocasionales. Se usan guiones más largos para separar las oraciones incidentales que no se ligan con ninguno de los miembros del período; para indicar en los diálogos cuando habla cada interlocutor y para suplir al principio de línea, en índices y otros escritos semejantes, el vocablo con que empieza otra línea anterior.",
+    "score": 0.7767258286476135,
+    "margin": 0.08183223009109497
+  },
+  {
+    "word": "doblar / girar a la izquierda",
+    "meaning": "links abbiegen",
+    "definition": "Al desplazarse, superar una curva del camino o ruta, cambiando de dirección.",
+    "score": 0.777008056640625,
+    "margin": 0.006715714931488037
+  },
+  {
+    "word": "el garbanzo",
+    "meaning": "Kichererbse",
+    "definition": "(Cicer arietinum) Planta leguminosa de la familia de las fabáceas, con hábito herbáceo, de hasta 50 cm de altura, tallo redondeado, hojas imparipinnadas de folíolos dentados. Produce flores solitarias, blancas, que fructifican en una vaina con un par de semillas. Se cultiva por estas, usadas como alimento.",
+    "score": 0.7774679660797119,
+    "margin": 0.11881601810455322
+  },
+  {
+    "word": "adivinar",
+    "meaning": "erraten",
+    "definition": "Tener conocimiento o videncia de lo futuro, secreto, enigmático o ignoto a través de medios mágicos o no exclusivamente basados en la razón, la observación, la evidencia o la ciencia.",
+    "score": 0.7778522968292236,
+    "margin": 0.09751087427139282
+  },
+  {
+    "word": "viajar",
+    "meaning": "reisen",
+    "definition": "Desplazarse de un sitio a otro, en especial si la distancia es apreciable.",
+    "score": 0.778418242931366,
+    "margin": 0.10432285070419312
+  },
+  {
+    "word": "la silla",
+    "meaning": "Stuhl",
+    "definition": "Mueble para sentarse que tiene respaldo.",
+    "score": 0.7787787914276123,
+    "margin": 0.10844296216964722
+  },
+  {
+    "word": "joven",
+    "meaning": "jung",
+    "definition": "De poca edad.",
+    "score": 0.7791564464569092,
+    "margin": 0.09513187408447266
+  },
+  {
+    "word": "casado/a",
+    "meaning": "verheiratet",
+    "definition": "Dicho de las aves, apareado.",
+    "score": 0.7797797322273254,
+    "margin": 0.08237183094024658
+  },
+  {
+    "word": "la gamba",
+    "meaning": "Krabbe, Garnele",
+    "definition": "Cualquiera de numerosas especies de crustáceos marinos, decápodos, del infraorden de los carídeos, de pequeño tamaño y apreciados como alimento.",
+    "score": 0.7798713445663452,
+    "margin": 0.07626134157180786
+  },
+  {
+    "word": "la biografía",
+    "meaning": "Biografie",
+    "definition": "Trayectoria, especialmente narrada en forma de historia, de la vida de una persona o, por extensión, de una entidad.",
+    "score": 0.780126690864563,
+    "margin": 0.09521055221557617
+  },
+  {
+    "word": "la risa",
+    "meaning": "Lachen",
+    "definition": "Conjunto de sonidos o gestos que hace alguien cuando ríe.",
+    "score": 0.7802563309669495,
+    "margin": 0.00972747802734375
+  },
+  {
+    "word": "la mesa",
+    "meaning": "der Tisch",
+    "definition": "Mueble que consta de una superficie plana y horizontal sostenida por patas.",
+    "score": 0.7803403735160828,
+    "margin": 0.0887184739112854
+  },
+  {
+    "word": "ahí",
+    "meaning": "dort",
+    "definition": "Variante de allí.",
+    "score": 0.7803806662559509,
+    "margin": 0.0016314387321472168
+  },
+  {
+    "word": "fundamental",
+    "meaning": "grundlegend",
+    "definition": "Propio o relacionado con el fundamento o los principios en lo que se basa algo o la estructura que sostiene algo.",
+    "score": 0.7808345556259155,
+    "margin": 0.004285633563995361
+  },
+  {
+    "word": "nevar",
+    "meaning": "schneien",
+    "definition": "Caer nieve del cielo.",
+    "score": 0.781005322933197,
+    "margin": 0.022343873977661133
+  },
+  {
+    "word": "nevar (ie)",
+    "meaning": "schneien",
+    "definition": "Caer nieve del cielo.",
+    "score": 0.781005322933197,
+    "margin": 0.022343873977661133
+  },
+  {
+    "word": "la garganta",
+    "meaning": "Hals, Rachen",
+    "definition": "Parte del cuello anterior a la columna vertebral. Consiste en la faringe y la laringe.",
+    "score": 0.7811907529830933,
+    "margin": 0.08444714546203613
+  },
+  {
+    "word": "la alarma",
+    "meaning": "Weckruf",
+    "definition": "Dispositivo sonoro que se activa en caso de emergencia o peligro.",
+    "score": 0.7813631296157837,
+    "margin": 0.0026744604110717773
+  },
+  {
+    "word": "aparcar",
+    "meaning": "parken",
+    "definition": "Colocar y dejar quieto un vehículo (automóvil, bicicleta, avión, etc.) en un lugar específico, generalmente de forma transitoria y en un sitio designado para ello.",
+    "score": 0.7814235687255859,
+    "margin": 0.1116185188293457
+  },
+  {
+    "word": "reservar",
+    "meaning": "reservieren",
+    "definition": "Ocupar un espacio para que lo use una persona o un grupo de personas en específico.",
+    "score": 0.7815810441970825,
+    "margin": 0.014581263065338135
+  },
+  {
+    "word": "el parque",
+    "meaning": "der Park",
+    "definition": "Terreno o sitio cercado y con plantas, para caza o para recreo, generalmente inmediato a un palacio o a una población.",
+    "score": 0.7816605567932129,
+    "margin": 0.08316075801849365
+  },
+  {
+    "word": "azul",
+    "meaning": "blau",
+    "definition": "De color que recuerda al del cielo en un día despejado, ubicado entre el verde y el añil en el espectro cromático, en una longitud de onda de alrededor de 470 nm. Tradicionalmente se considera el quinto color del arcoíris o espectro solar.",
+    "score": 0.7823063135147095,
+    "margin": 0.07093000411987305
+  },
+  {
+    "word": "maduro/-a",
+    "meaning": "reif",
+    "definition": "Se dice del fruto al que le ha llegado el momento en que puede ser consumido.",
+    "score": 0.7824059128761292,
+    "margin": 0.11807388067245483
+  },
+  {
+    "word": "despierto/-a",
+    "meaning": "wach",
+    "definition": "En estado de vigilia, no durmiendo.",
+    "score": 0.7828274965286255,
+    "margin": 0.13047027587890625
+  },
+  {
+    "word": "el hombro",
+    "meaning": "Schulter",
+    "definition": "Parte del cuerpo que liga al cuello la articulación del brazo en el hombre.",
+    "score": 0.7829792499542236,
+    "margin": 0.1083688735961914
+  },
+  {
+    "word": "la nuez",
+    "meaning": "Walnuss",
+    "definition": "Tipo de fruto seco indehiscente, dotado de un pericarpo duro, por lo general unilocular y monospermo.",
+    "score": 0.7831899523735046,
+    "margin": 0.02642989158630371
+  },
+  {
+    "word": "recompensar",
+    "meaning": "belohnen",
+    "definition": "Compensar, satisfacer o remunerar un beneficio, favor, virtud, mérito o servicio.",
+    "score": 0.7831986546516418,
+    "margin": 0.009155690670013428
+  },
+  {
+    "word": "la almendra",
+    "meaning": "Mandel",
+    "definition": "(Prunus dulcis) Fruto del almendro. También se utiliza para nombrar la semilla de otros frutos drupáceos.",
+    "score": 0.7833276987075806,
+    "margin": 0.042714476585388184
+  },
+  {
+    "word": "el limón",
+    "meaning": "die Zitrone",
+    "definition": "(Citrus × limon) Fruto cítrico obtenido del limonero. Es un hesperidio ovoide, con un pezón en el extremo distal, jugoso, con cáscara de color verde virando al amarillo, pulpa amarillenta y sabor moderadamente ácido, debido a la concentración de ácido cítrico en su jugo. Se aprovecha también la capa más exterior de su piel, fuertemente aromática.",
+    "score": 0.7833293676376343,
+    "margin": 0.07291018962860107
+  },
+  {
+    "word": "las escaleras",
+    "meaning": "die Treppe",
+    "definition": "Construcción formada por una serie de escalones, permitiendo al usuario desplazarse entre los distintos planos de un edificio o lugar.",
+    "score": 0.7838845252990723,
+    "margin": 0.09137105941772461
+  },
+  {
+    "word": "el sándwich",
+    "meaning": "Sandwich, belegtes Brot",
+    "definition": "Comida compuesta por uno o varios ingredientes entre dos o más capas de pan de molde, ya que para otro tipo de emparedado servido con otro tipo de pan existía el término bocadillo, que hacía innecesaria la inclusión en la real academia de un anglicismo.",
+    "score": 0.7842509150505066,
+    "margin": 0.042576491832733154
+  },
+  {
+    "word": "detrás (de)",
+    "meaning": "(da)hinter, hinten",
+    "definition": "Que está o que ocurre en la parte posterior o en la parte que queda a espaldas de algo o alguien",
+    "score": 0.7844746112823486,
+    "margin": 0.11914008855819702
+  },
+  {
+    "word": "la patata",
+    "meaning": "Kartoffel",
+    "definition": "Órgano de los animales que se ocupa de bombear la sangre.",
+    "score": 0.7846406698226929,
+    "margin": 0.0017093420028686523
+  },
+  {
+    "word": "¿Para qué?",
+    "meaning": "Wozu?",
+    "definition": "Pregunta por la finalidad, el fin que se desea alcanzar.",
+    "score": 0.7846513986587524,
+    "margin": 0.02645742893218994
+  },
+  {
+    "word": "el mensaje",
+    "meaning": "Nachricht",
+    "definition": "Acción o encargo de decir algo, o bien llevar una cosa.",
+    "score": 0.784789502620697,
+    "margin": 0.007803201675415039
+  },
+  {
+    "word": "el mosquito",
+    "meaning": "Mücke",
+    "definition": "(Drosophila) Mosca muy pequeña de color marronáceo llamada también mosca del vinagre o mosca de la fruta, que suele alimentarse de frutas muy maduras o substancias en fermentación ricas en fructosa. Es inofensiva.",
+    "score": 0.7849339246749878,
+    "margin": 0.009367108345031738
+  },
+  {
+    "word": "el jamón",
+    "meaning": "der Schinken",
+    "definition": "Pata posterior del cerdo, destinada al consumo humano.",
+    "score": 0.7849637269973755,
+    "margin": 0.012879490852355957
+  },
+  {
+    "word": "el verano",
+    "meaning": "der Sommer",
+    "definition": "Estación del año, entre la primavera y el otoño, que se da en latitudes más altas que las marcadas por los trópicos. Esta estación se caracteriza por los días más largos que las noches, mayores temperaturas y, generalmente, bajas precipitaciones.",
+    "score": 0.7854121923446655,
+    "margin": 0.08132171630859375
+  },
+  {
+    "word": "continuar",
+    "meaning": "fortfahren",
+    "definition": "Prolongar.",
+    "score": 0.7860031127929688,
+    "margin": 0.028438687324523926
+  },
+  {
+    "word": "la pena",
+    "meaning": "Strafe",
+    "definition": "Cuidado, aflicción o sentimiento interior grande.",
+    "score": 0.7861998677253723,
+    "margin": 0.09157401323318481
+  },
+  {
+    "word": "la columna",
+    "meaning": "Spalte",
+    "definition": "Elemento sustentante vertical de cuerpo cilíndrico. Posee una anatomía compleja en la que destacan elementos como la basa (en la base), el fuste (o cuerpo principal) y el capitel (o remate). Puede cumplir función estructural, sujetando la cubierta de un edificio, o de simple adorno o complemento. Cuando está adosada a un muro se le llama pilastra.",
+    "score": 0.7864747643470764,
+    "margin": 0.11358314752578735
+  },
+  {
+    "word": "el gorro",
+    "meaning": "Mütze, Kappe",
+    "definition": "Prenda de vestir que se coloca sobre la cabeza sin ala ni visera.",
+    "score": 0.7864946126937866,
+    "margin": 0.006807863712310791
+  },
+  {
+    "word": "el primero",
+    "meaning": "Vorspeise, erster Gang",
+    "definition": "Que está antes que todos los demás en una serie ordenada (tiempo, clase, etc.). Ordinal del uno.",
+    "score": 0.7870684862136841,
+    "margin": 0.07455849647521973
+  },
+  {
+    "word": "bailar",
+    "meaning": "tanzen",
+    "definition": "Mover el cuerpo de forma rítmica, generalmente acompañado de música.",
+    "score": 0.7870867848396301,
+    "margin": 0.12743926048278809
+  },
+  {
+    "word": "fijo/-a",
+    "meaning": "fest",
+    "definition": "Que está bien atado, apretado o asegurado.",
+    "score": 0.7872030735015869,
+    "margin": 0.0002639293670654297
+  },
+  {
+    "word": "exagerado/-a",
+    "meaning": "übertrieben",
+    "definition": "Que exagera o da una dimensión excesiva a algo, percibiéndolo o presentándolo como mayor, menor, mejor o peor de lo que es.",
+    "score": 0.7874875664710999,
+    "margin": 0.013238847255706787
+  },
+  {
+    "word": "proponer (g)",
+    "meaning": "vorschlagen",
+    "definition": "Presentar a alguien como candidato a un cargo, premio, etc.",
+    "score": 0.7877635359764099,
+    "margin": 0.006052374839782715
+  },
+  {
+    "word": "alegre",
+    "meaning": "fröhlich",
+    "definition": "Que está lleno de alegría.",
+    "score": 0.7877705097198486,
+    "margin": 0.10172069072723389
+  },
+  {
+    "word": "caro/a",
+    "meaning": "teuer",
+    "definition": "Que tiene un alto valor o costo; que excede mucho del valor o estimación regular.",
+    "score": 0.7878867387771606,
+    "margin": 0.132310688495636
+  },
+  {
+    "word": "el destino",
+    "meaning": "Zielort",
+    "definition": "Lugar al que se dirige algo o alguien.",
+    "score": 0.7885867357254028,
+    "margin": 0.1295393705368042
+  },
+  {
+    "word": "flexible",
+    "meaning": "flexibel",
+    "definition": "Que se puede adaptar o acomodar en función de las circunstancias o necesidades.",
+    "score": 0.7887609004974365,
+    "margin": 0.0017266273498535156
+  },
+  {
+    "word": "el futuro",
+    "meaning": "Zukunft",
+    "definition": "Tiempo que aún no ha llegado.",
+    "score": 0.7887749075889587,
+    "margin": 0.10893136262893677
+  },
+  {
+    "word": "el café",
+    "meaning": "Kaffee",
+    "definition": "Color castaño muy oscuro, similar al de esta infusión o al del chocolate.",
+    "score": 0.7888408899307251,
+    "margin": 0.03627300262451172
+  },
+  {
+    "word": "el paraguas",
+    "meaning": "Regenschirm",
+    "definition": "Utensilio formado por un armazón plegable recubierto de tela impermeable y un mango, empleado para cubrirse de la lluvia cuando se está a la intemperie.",
+    "score": 0.7890069484710693,
+    "margin": 0.10539549589157104
+  },
+  {
+    "word": "la estrella",
+    "meaning": "Stern, Star",
+    "definition": "Cualquier cuerpo celeste visible a simple vista durante la noche exceptuando la Luna.",
+    "score": 0.789219856262207,
+    "margin": 0.00036215782165527344
+  },
+  {
+    "word": "recoger",
+    "meaning": "abholen",
+    "definition": "Volver a tomar una cosa.",
+    "score": 0.7893761396408081,
+    "margin": 0.09179288148880005
+  },
+  {
+    "word": "la página",
+    "meaning": "Seite",
+    "definition": "Cada una de las dos caras de una hoja impresa.",
+    "score": 0.7893984913825989,
+    "margin": 0.11385959386825562
+  },
+  {
+    "word": "el enchufe",
+    "meaning": "Stecker",
+    "definition": "Dispositivo formado por una pieza macho y una hembra que al conectarlo cierra un circuito eléctrico.",
+    "score": 0.7894724607467651,
+    "margin": 0.13022536039352417
+  },
+  {
+    "word": "los trámites",
+    "meaning": "die Formalitäten, engl.: paperwork",
+    "definition": "Acción o efecto de pasar de una cosa a otra, o de una parte o etapa a otra.",
+    "score": 0.7896211743354797,
+    "margin": 0.003070652484893799
+  },
+  {
+    "word": "reírse",
+    "meaning": "lachen",
+    "definition": "Hacer burla de algo.",
+    "score": 0.7896919250488281,
+    "margin": 0.002480149269104004
+  },
+  {
+    "word": "guardar",
+    "meaning": "speichem",
+    "definition": "Aguardar",
+    "score": 0.7900159955024719,
+    "margin": 0.00027817487716674805
+  },
+  {
+    "word": "entonces",
+    "meaning": "dann",
+    "definition": "Indica una acción que ocurrirá después de lo expresado.",
+    "score": 0.7902369499206543,
+    "margin": 0.006764054298400879
+  },
+  {
+    "word": "el ajedrez",
+    "meaning": "das Schach",
+    "definition": "Juego de mesa que disputan dos jugadores sobre un tablero de 8×8 escaques de colores alternos. Los 16 trebejos con que cuenta cada jugador se mueven, sin intervención del azar, con el objetivo de colocar al rey contrario en una posición en la que no pueda evitar ser capturado, situación llamada jaque mate.",
+    "score": 0.7902388572692871,
+    "margin": 0.10220152139663696
+  },
+  {
+    "word": "doblar",
+    "meaning": "abbiegen",
+    "definition": "Al desplazarse, superar una curva del camino o ruta, cambiando de dirección.",
+    "score": 0.7903764843940735,
+    "margin": 0.002107560634613037
+  },
+  {
+    "word": "la maleta",
+    "meaning": "Koffer",
+    "definition": "Caja o recipiente, dotado de asas u otros medios de sujeción, empleada para transportar ropas y otros enseres en cierta cantidad durante un viaje.",
+    "score": 0.7905133962631226,
+    "margin": 0.10755807161331177
+  },
+  {
+    "word": "el pepino",
+    "meaning": "Gurke",
+    "definition": "Fruto del pepino₁",
+    "score": 0.7907012701034546,
+    "margin": 0.003237009048461914
+  },
+  {
+    "word": "el consejo",
+    "meaning": "Ratschlag",
+    "definition": "Reunión de personas con el propósito de aconsejar o tomar decisiones.",
+    "score": 0.7907418012619019,
+    "margin": 0.0087546706199646
+  },
+  {
+    "word": "preferir (ie)",
+    "meaning": "bevorzugen",
+    "definition": "Escoger entre varias alternativas según el gusto o la conveniencia.",
+    "score": 0.790861189365387,
+    "margin": 0.003891289234161377
+  },
+  {
+    "word": "el zumo / el jugo",
+    "meaning": "der Saft",
+    "definition": "Líquido que se extrae de un sólido, en especial de un vegetal, mediante presión, infusión o molienda.",
+    "score": 0.7908615469932556,
+    "margin": 0.015376031398773193
+  },
+  {
+    "word": "porque",
+    "meaning": "weil",
+    "definition": "Introduce una oración que explica la causa o el motivo.",
+    "score": 0.7908885478973389,
+    "margin": 0.12267923355102539
+  },
+  {
+    "word": "despertarse",
+    "meaning": "aufwachen",
+    "definition": "Salir del estado de sueño",
+    "score": 0.7909128069877625,
+    "margin": 0.12519413232803345
+  },
+  {
+    "word": "despertarse (ie)",
+    "meaning": "aufwachen",
+    "definition": "Salir del estado de sueño",
+    "score": 0.7909128069877625,
+    "margin": 0.12519413232803345
+  },
+  {
+    "word": "rico/-a",
+    "meaning": "lecker",
+    "definition": "Dicho de una persona, en especial de un niño, que tiene encanto y gracia.",
+    "score": 0.7909990549087524,
+    "margin": 0.0045732855796813965
+  },
+  {
+    "word": "cansado/-a",
+    "meaning": "müde",
+    "definition": "Que tiene la costumbre de hacer una cosa y la conoce al dedillo.",
+    "score": 0.7910649180412292,
+    "margin": 0.005667269229888916
+  },
+  {
+    "word": "redondo/a",
+    "meaning": "rund",
+    "definition": "Que tiene una forma igual o similar a un círculo o a una esfera.",
+    "score": 0.791411280632019,
+    "margin": 0.10503721237182617
+  },
+  {
+    "word": "respirar",
+    "meaning": "atmen",
+    "definition": "Cesar un esfuerzo o padecimiento.",
+    "score": 0.7918046116828918,
+    "margin": 0.008035778999328613
+  },
+  {
+    "word": "el capítulo",
+    "meaning": "Kapitel",
+    "definition": "División de un libro, código, tratado, o ley",
+    "score": 0.7919413447380066,
+    "margin": 0.11564332246780396
+  },
+  {
+    "word": "abrir",
+    "meaning": "öffnen",
+    "definition": "Hacer girar una puerta hasta separarla de su marco.",
+    "score": 0.7920066118240356,
+    "margin": 0.006367206573486328
+  },
+  {
+    "word": "mencionar",
+    "meaning": "erwähnen",
+    "definition": "Recordar o citar una cosa para que se tenga conocimiento de esta.",
+    "score": 0.7920808792114258,
+    "margin": 0.00298464298248291
+  },
+  {
+    "word": "la empanada",
+    "meaning": "gefüllte Teigpastete",
+    "definition": "Masa de maíz rellena de carne picada, queso u otros ingredientes en forma semicircular que se fríe en Aceite hirviendo.",
+    "score": 0.7921205163002014,
+    "margin": 0.005613982677459717
+  },
+  {
+    "word": "evitar",
+    "meaning": "vermeiden",
+    "definition": "Precaver que suceda una cosa.",
+    "score": 0.7921962738037109,
+    "margin": 0.10948300361633301
+  },
+  {
+    "word": "la sostenibilidad",
+    "meaning": "Nachhaltigkeit",
+    "definition": "Viabilidad y capacidad de subsistencia de un proyecto.",
+    "score": 0.7925361394882202,
+    "margin": 0.007831215858459473
+  },
+  {
+    "word": "invitar",
+    "meaning": "einladen",
+    "definition": "Pagar la cuenta a alguien por su consumo de bebidas, comida u otro.",
+    "score": 0.7926267385482788,
+    "margin": 0.000792384147644043
+  },
+  {
+    "word": "el despertador",
+    "meaning": "der Wecker",
+    "definition": "Persona encargada de despertar a otras.",
+    "score": 0.7927168607711792,
+    "margin": 0.02059769630432129
+  },
+  {
+    "word": "la isla",
+    "meaning": "Insel",
+    "definition": "Territorio rodeado completamente por agua.",
+    "score": 0.7927566170692444,
+    "margin": 0.11452668905258179
+  },
+  {
+    "word": "la habilidad",
+    "meaning": "Geschick",
+    "definition": "Situación que se crea con astucia e ingenio para manipular y obtener algo.",
+    "score": 0.7927708625793457,
+    "margin": 0.008008480072021484
+  },
+  {
+    "word": "el remo",
+    "meaning": "das Rudern",
+    "definition": "Acción o efecto de remar.",
+    "score": 0.7928628325462341,
+    "margin": 0.015121161937713623
+  },
+  {
+    "word": "nadar",
+    "meaning": "schwimmen",
+    "definition": "Desplazarse en el agua u otro líquido por los propios medios, impulsándose por desplazamiento del medio fluido.",
+    "score": 0.792888879776001,
+    "margin": 0.08690774440765381
+  },
+  {
+    "word": "molestar",
+    "meaning": "stören",
+    "definition": "Causar molestias o incomodidades de alguna clase.",
+    "score": 0.7930254340171814,
+    "margin": 0.11621230840682983
+  },
+  {
+    "word": "los complementos",
+    "meaning": "Nahrungsergänzungsmittel",
+    "definition": "Grupo de proteínas que se reúnen alrededor de una célula extraña al organismo para protegerlo de esta.",
+    "score": 0.793048620223999,
+    "margin": 0.016154706478118896
+  },
+  {
+    "word": "el jersey",
+    "meaning": "der Pullover",
+    "definition": "Prenda de vestir tejida en lana que cubre el torso y los brazos.",
+    "score": 0.7930560111999512,
+    "margin": 0.02435600757598877
+  },
+  {
+    "word": "gustar",
+    "meaning": "gefallen",
+    "definition": "Encontrar placer, gusto o deleite en algo.",
+    "score": 0.7930974364280701,
+    "margin": 0.010125815868377686
+  },
+  {
+    "word": "corto/-a",
+    "meaning": "kurz",
+    "definition": "Pequeño, especialmente en cuanto a la longitud, duración o extensión, pero también en cuanto a otra dimensión en comparación con otros de su clase o género.",
+    "score": 0.793110728263855,
+    "margin": 0.08829116821289062
+  },
+  {
+    "word": "ligero/a",
+    "meaning": "leicht",
+    "definition": "Que pesa poco o que tiene poca densidad.",
+    "score": 0.7932235598564148,
+    "margin": 0.08305937051773071
+  },
+  {
+    "word": "el arándano",
+    "meaning": "die Heidelbeere",
+    "definition": "(Vaccinium spp.) Cualquiera de varias especies de plantas arbustivas de la familia de las ericáceas, nativas mayormente de las zonas templadas y frías del hemisferio norte, cuyas bayas se aprecian mucho en gastronomía.",
+    "score": 0.7933129072189331,
+    "margin": 0.00559842586517334
+  },
+  {
+    "word": "la actitud",
+    "meaning": "Haltung",
+    "definition": "Posición, orientación o disposición mental o emocional hacia alguien o algo.",
+    "score": 0.7933206558227539,
+    "margin": 0.0015093684196472168
+  },
+  {
+    "word": "los abuelos",
+    "meaning": "die Großeltern",
+    "definition": "Vilano grande y plumoso.",
+    "score": 0.7934333682060242,
+    "margin": 0.014133989810943604
+  },
+  {
+    "word": "derecho/-a",
+    "meaning": "rechte/r/s",
+    "definition": "Recto, sin torcerse.",
+    "score": 0.7934356927871704,
+    "margin": 0.0003298521041870117
+  },
+  {
+    "word": "la paella",
+    "meaning": "spanisches Reisgericht",
+    "definition": "Recipiente donde se prepara este plato.",
+    "score": 0.7936544418334961,
+    "margin": 0.01881307363510132
+  },
+  {
+    "word": "los gastos",
+    "meaning": "die Ausgaben",
+    "definition": "Acción y efecto de gastar",
+    "score": 0.7936651706695557,
+    "margin": 0.007695794105529785
+  },
+  {
+    "word": "el pasillo",
+    "meaning": "Gang, Flur",
+    "definition": "Parte de paso de una casaque comunica diferentes habitaciones, salas, etc.,",
+    "score": 0.793667197227478,
+    "margin": 0.10200464725494385
+  },
+  {
+    "word": "decir (i, g)",
+    "meaning": "sagen",
+    "definition": "Dicho₁ notable por la sentencia, por la oportunidad o por otro motivo.",
+    "score": 0.7936900854110718,
+    "margin": 0.0026494860649108887
+  },
+  {
+    "word": "decir",
+    "meaning": "sagen",
+    "definition": "Dicho₁ notable por la sentencia, por la oportunidad o por otro motivo.",
+    "score": 0.7936900854110718,
+    "margin": 0.0026494860649108887
+  },
+  {
+    "word": "destacar",
+    "meaning": "herausragen",
+    "definition": "Sobresalir, descollar, distinguirse por una aptitud física o moral.",
+    "score": 0.7937393188476562,
+    "margin": 0.0014927983283996582
+  },
+  {
+    "word": "la arroba",
+    "meaning": "At-Zeichen(@)",
+    "definition": "Pesa de metal que pesa 1 arroba.",
+    "score": 0.7937790155410767,
+    "margin": 0.0006617307662963867
+  },
+  {
+    "word": "el jabón",
+    "meaning": "Seife",
+    "definition": "Sustancia alcalina obtenida de la combinación de grasa animal con álcali y utilizada para propósitos de limpieza por sus propiedades anfóteras.",
+    "score": 0.7938252687454224,
+    "margin": 0.1079336404800415
+  },
+  {
+    "word": "rechazar",
+    "meaning": "ablehnen",
+    "definition": "Obligar al enemigo a ceder.",
+    "score": 0.7939578294754028,
+    "margin": 0.012894868850708008
+  },
+  {
+    "word": "soltero/a",
+    "meaning": "ledig",
+    "definition": "Que, estando capacitado para hacerlo, no ha contraído matrimonio.",
+    "score": 0.7939932346343994,
+    "margin": 0.010043084621429443
+  },
+  {
+    "word": "la playa",
+    "meaning": "der Strand",
+    "definition": "Arenal o pedregal costero y más o menos llano.",
+    "score": 0.7943970561027527,
+    "margin": 0.09603321552276611
+  },
+  {
+    "word": "impresionar",
+    "meaning": "beeindrucken",
+    "definition": "Producir una emoción, generalmente inesperada, con un efecto duradero en la memoria de alguien.",
+    "score": 0.7946722507476807,
+    "margin": 0.1312708854675293
+  },
+  {
+    "word": "amplio/a",
+    "meaning": "geräumig",
+    "definition": "De gran extensión, espacio, duración o profundidad.",
+    "score": 0.7947106957435608,
+    "margin": 0.0015936493873596191
+  },
+  {
+    "word": "negro/a",
+    "meaning": "schwarz",
+    "definition": "Que ha perdido su color normal, que es oscuro o ha ennegrecido.",
+    "score": 0.7947520017623901,
+    "margin": 0.004590153694152832
+  },
+  {
+    "word": "este/-a",
+    "meaning": "diese/r/s",
+    "definition": "Referido a un período de tiempo, que transcurre en el momento en que se habla.",
+    "score": 0.7948466539382935,
+    "margin": 0.10862946510314941
+  },
+  {
+    "word": "esperar",
+    "meaning": "warten",
+    "definition": "Detener el movimiento o la acción hasta la llegada u ocurrencia de algo, hacer tiempo.",
+    "score": 0.7950859665870667,
+    "margin": 0.12496405839920044
+  },
+  {
+    "word": "la pista",
+    "meaning": "Tanzfläche",
+    "definition": "Calle de un campo aéreo, por donde los aviones carretean, aterrizan o despegan.",
+    "score": 0.7951745986938477,
+    "margin": 0.0016654729843139648
+  },
+  {
+    "word": "el estómago",
+    "meaning": "Magen",
+    "definition": "Capacidad para soportar situaciones, hecho o cosas desagradables o para poder hacer cosas que repugnan a los sentidos o a la moral.",
+    "score": 0.7952009439468384,
+    "margin": 0.005439639091491699
+  },
+  {
+    "word": "interrumpir",
+    "meaning": "unterbrechen",
+    "definition": "Impedir u obstaculizar la palabra a alguien que está hablando.",
+    "score": 0.795415997505188,
+    "margin": 0.00014901161193847656
+  },
+  {
+    "word": "arriba",
+    "meaning": "oben",
+    "definition": "Se emplea para excitar a alguien a que suba, se levante o se anime.",
+    "score": 0.7957011461257935,
+    "margin": 0.007421433925628662
+  },
+  {
+    "word": "lo mismo",
+    "meaning": "das Gleiche",
+    "definition": "Quizá, tal vez.",
+    "score": 0.7957097291946411,
+    "margin": 0.02300161123275757
+  },
+  {
+    "word": "las noticias",
+    "meaning": "Nachrichten",
+    "definition": "Comunicación de un suceso reciente.",
+    "score": 0.795982837677002,
+    "margin": 0.018012702465057373
+  },
+  {
+    "word": "pronto",
+    "meaning": "bald",
+    "definition": "Dispuesto, aparejado para la ejecución de alguna cosa.",
+    "score": 0.7960449457168579,
+    "margin": 0.0172155499458313
+  },
+  {
+    "word": "la sal",
+    "meaning": "Salz",
+    "definition": "Condimento compuesto principalmente por cloruro de sodio. Se usa en todo el mundo desde tiempos remotos y confiere a los alimentos un sabor característico (salado).",
+    "score": 0.7961261868476868,
+    "margin": 0.12531358003616333
+  },
+  {
+    "word": "la mitad",
+    "meaning": "die Hälfte",
+    "definition": "Al dividir un todo en dos partes iguales, cada una de dichas partes.",
+    "score": 0.7961471080780029,
+    "margin": 0.10018551349639893
+  },
+  {
+    "word": "la pasión",
+    "meaning": "Leidenschaft",
+    "definition": "Deseo intenso.",
+    "score": 0.7964311838150024,
+    "margin": 0.012200534343719482
+  },
+  {
+    "word": "el planeta",
+    "meaning": "Planet",
+    "definition": "De acuerdo con la Unión Astronómica International, cualquiera de los siguientes ocho objetos del sistema solar: Mercurio, Venus, Tierra, Marte, Júpiter, Saturno, Urano, y Neptuno.",
+    "score": 0.7964962124824524,
+    "margin": 0.0023467540740966797
+  },
+  {
+    "word": "la receta",
+    "meaning": "Rezept",
+    "definition": "Nota escrita de esta prescripción₂.",
+    "score": 0.7965529561042786,
+    "margin": 0.0019780993461608887
+  },
+  {
+    "word": "la suposición",
+    "meaning": "Vermutung",
+    "definition": "Afirmación, declaración o actitud que no corresponden a la verdad.",
+    "score": 0.7966041564941406,
+    "margin": 0.0011554956436157227
+  },
+  {
+    "word": "el río",
+    "meaning": "Fluss",
+    "definition": "Corriente de agua de caudal importante que discurre por tierra desde un manantial, una masa de hielos o un lago.",
+    "score": 0.7967165112495422,
+    "margin": 0.1303073763847351
+  },
+  {
+    "word": "excepcional",
+    "meaning": "außergewöhnlich",
+    "definition": "Muy bueno, fantástico, estupendo.",
+    "score": 0.7968765497207642,
+    "margin": 0.013836681842803955
+  },
+  {
+    "word": "el brócoli",
+    "meaning": "Brokkoli",
+    "definition": "(Brassica oleracea var. italica) Planta de la familia de las brasicáceas, cultivada por sus flores comestibles de color verde oscuro. Es una variedad de la especie a la que también pertenecen la col y la coliflor.",
+    "score": 0.796943187713623,
+    "margin": 0.10705053806304932
+  },
+  {
+    "word": "actuar",
+    "meaning": "agieren",
+    "definition": "Ejercer una actividad, función o cargo.",
+    "score": 0.7969745397567749,
+    "margin": 0.0008255243301391602
+  },
+  {
+    "word": "el yogur",
+    "meaning": "Joghurt",
+    "definition": "Producto similar basado en otras sustancias.",
+    "score": 0.7971483469009399,
+    "margin": 0.0006158351898193359
+  },
+  {
+    "word": "la opinión",
+    "meaning": "Meinung",
+    "definition": "Grado personal de verdad, impresión o certeza que alguien se ha formado sobre algo, especialmente en casos cuestionables; perspectiva o punto de vista de alguien sobre un tema, situación o asunto.",
+    "score": 0.7975404262542725,
+    "margin": 0.12196826934814453
+  },
+  {
+    "word": "el pasaporte",
+    "meaning": "der Reisepass",
+    "definition": "Documento con validez internacional, que identifica a su titular, expedido por las autoridades de un país, que acredita el permiso o autorización legal para que salga o ingrese del mismo, por los puertos internacionales.",
+    "score": 0.7976233959197998,
+    "margin": 0.004802346229553223
+  },
+  {
+    "word": "rojo/a",
+    "meaning": "rot",
+    "definition": "Pigmento rojo₁.",
+    "score": 0.7976747751235962,
+    "margin": 0.007110476493835449
+  },
+  {
+    "word": "el cuarto",
+    "meaning": "Viertel",
+    "definition": "Que va inmediatamente después del tercero en una serie. Ordinal del cuatro.",
+    "score": 0.797742486000061,
+    "margin": 0.0833594799041748
+  },
+  {
+    "word": "la fiebre",
+    "meaning": "Fieber",
+    "definition": "Fenómeno patológico que ordinariamente se manifiesta por elevación de la temperatura normal del cuerpo y frecuencia del pulso y la respiración.",
+    "score": 0.7978445291519165,
+    "margin": 0.13083237409591675
+  },
+  {
+    "word": "cerrar (ie)",
+    "meaning": "schließen",
+    "definition": "Colocar o modificar algo para evitar su apertura.",
+    "score": 0.7978953719139099,
+    "margin": 0.10960197448730469
+  },
+  {
+    "word": "pagar",
+    "meaning": "bezahlen",
+    "definition": "Satisfacer lo que se debía.",
+    "score": 0.7979187965393066,
+    "margin": 0.1014101505279541
+  },
+  {
+    "word": "el agua (f)",
+    "meaning": "Wasser",
+    "definition": "Sustancia transparente, inodora e insípida, que se encuentra en estado líquido a temperatura y presión estándar, y cuya composición molecular es de dos átomos de hidrógeno por uno de oxígeno.",
+    "score": 0.7979610562324524,
+    "margin": 0.08743137121200562
+  },
+  {
+    "word": "la pesadilla",
+    "meaning": "Albtraum",
+    "definition": "Sueño angustioso y desagradable.",
+    "score": 0.7980347871780396,
+    "margin": 0.001984119415283203
+  },
+  {
+    "word": "el piso",
+    "meaning": "das Stockwerk",
+    "definition": "Vivienda en un edificio.",
+    "score": 0.7980786561965942,
+    "margin": 0.01182401180267334
+  },
+  {
+    "word": "el objetivo",
+    "meaning": "Ziel",
+    "definition": "Blanco para ejercitar el disparo de un arma.",
+    "score": 0.7983577847480774,
+    "margin": 0.010981380939483643
+  },
+  {
+    "word": "el animal",
+    "meaning": "Tier",
+    "definition": "Animal cuadrúpedo doméstico, principalmente los vacunos.",
+    "score": 0.7987469434738159,
+    "margin": 0.0030477046966552734
+  },
+  {
+    "word": "la empresa",
+    "meaning": "Unternehmen, Firma",
+    "definition": "Organismo compuesto por el trabajo y el capital como elementos de la producción, y ocupada en labores industriales, comerciales o de prestación de servicios, con fines de lucro.",
+    "score": 0.7989288568496704,
+    "margin": 0.11305499076843262
+  },
+  {
+    "word": "ver",
+    "meaning": "(an)sehen",
+    "definition": "Percibir algo con los ojos a través de la luz que, reflejada en los objetos, impacta en ellos. Es uno de los cinco sentidos tradicionalmente reconocidos en el ser humano, y el de más importancia en la mayoría de las personas en cuanto a la comprensión de su entorno.",
+    "score": 0.7991101145744324,
+    "margin": 0.08781194686889648
+  },
+  {
+    "word": "(a ti) te",
+    "meaning": "dir",
+    "definition": "Dativo y acusativo del pronombre personal de segunda persona del singular tú.",
+    "score": 0.7992502450942993,
+    "margin": 0.007162034511566162
+  },
+  {
+    "word": "el plato",
+    "meaning": "das Gericht",
+    "definition": "Alimento servido en este recipiente.",
+    "score": 0.7992672920227051,
+    "margin": 0.10468882322311401
+  },
+  {
+    "word": "pesimista",
+    "meaning": "pessimistisch",
+    "definition": "Dicho de una persona: Que se centra en lo negativo y adverso de las cosas.",
+    "score": 0.7992873191833496,
+    "margin": 0.09840190410614014
+  },
+  {
+    "word": "el diálogo",
+    "meaning": "Dialog",
+    "definition": "Interacción verbal entre dos o más personas.",
+    "score": 0.7993371486663818,
+    "margin": 0.07785117626190186
+  },
+  {
+    "word": "efectivo/-a",
+    "meaning": "effektiv",
+    "definition": "Que produce efectos reales.",
+    "score": 0.7993781566619873,
+    "margin": 0.014860272407531738
+  },
+  {
+    "word": "marcar",
+    "meaning": "markieren",
+    "definition": "Señalar, indicar con un signo.",
+    "score": 0.7993874549865723,
+    "margin": 0.1286444067955017
+  },
+  {
+    "word": "grabar",
+    "meaning": "aufnehmen, -zeichnen",
+    "definition": "Capturar y almacenar información en una cinta, disco o medio digital, de modo que pueda leerse, reproducirse o accederse luego.",
+    "score": 0.79944908618927,
+    "margin": 0.014219462871551514
+  },
+  {
+    "word": "cada",
+    "meaning": "jede/r/s",
+    "definition": "Designa una cosa o persona entre varias o entre una serie de ellas.",
+    "score": 0.7994948625564575,
+    "margin": 0.004240155220031738
+  },
+  {
+    "word": "por fin",
+    "meaning": "endlich",
+    "definition": "Denota algo que se logra por primera vez, después de mucho tiempo o de mucho trabajo o esfuerzo.",
+    "score": 0.7997705936431885,
+    "margin": 0.04857015609741211
+  },
+  {
+    "word": "el dato",
+    "meaning": "Angabe",
+    "definition": "Unidad de información, en especial cuando se usa como premisa o base para una inferencia.",
+    "score": 0.7998383641242981,
+    "margin": 0.10868620872497559
+  },
+  {
+    "word": "el ajo",
+    "meaning": "Knoblauch",
+    "definition": "Bulbo de esta planta, o gajo del mismo, utilizado como condimento.",
+    "score": 0.7999062538146973,
+    "margin": 0.02253544330596924
+  },
+  {
+    "word": "el paso",
+    "meaning": "Schritt",
+    "definition": "Cada uno de los movimientos de avance de las piernas al caminar.",
+    "score": 0.7999516725540161,
+    "margin": 0.09830403327941895
+  }
+]
