@@ -57,7 +57,7 @@ def _load(profile):
     try:
         return json.loads(protect(path.read_bytes(), decrypt=True))
     except (ValueError, OSError):
-        raise AuthError('No se puede leer la sesión de ChatGPT. Abre los ajustes para volver a conectar.') from None
+        raise AuthError('Cannot read your ChatGPT session. Open settings to reconnect.') from None
 
 
 def _save(profile, data):
@@ -85,14 +85,14 @@ def _request(url, data=None, token='', form=False):
         with urlopen(Request(url, data=body, headers=headers), timeout=35) as response:
             raw = response.read(2_000_001)
             if len(raw) > 2_000_000:
-                raise AuthError('La respuesta de ChatGPT es demasiado grande.')
+                raise AuthError('The ChatGPT response is too large.')
             return json.loads(raw) if raw else {}
     except HTTPError as error:
         if error.code == 429:
-            raise AuthError('Se ha alcanzado un límite del plan ChatGPT o de esta aplicación. Revisa ChatGPT → Ajustes → Uso.') from None
-        raise AuthError('ChatGPT no ha podido completar la solicitud. Revisa la conexión y vuelve a iniciar sesión si es necesario.') from None
+            raise AuthError('A ChatGPT plan or app limit has been reached. Check ChatGPT → Settings → Usage.') from None
+        raise AuthError('ChatGPT could not complete the request. Check your connection and sign in again if needed.') from None
     except (URLError, TimeoutError, OSError, ValueError):
-        raise AuthError('No se puede conectar con ChatGPT. Comprueba Internet e inténtalo de nuevo.') from None
+        raise AuthError('Cannot connect to ChatGPT. Check your internet connection and try again.') from None
 
 
 def _decode(value):
@@ -121,13 +121,13 @@ def validate_identity(token, client_id, nonce, jwks, now=None):
             raise ValueError()
         return claims
     except (ValueError, KeyError, TypeError, UnicodeError):
-        raise AuthError('No se ha podido verificar la identidad de ChatGPT. No se ha guardado esta conexión.') from None
+        raise AuthError('Could not verify your ChatGPT identity. This connection has not been authorized.') from None
 
 
 def _discovery():
     data = _request(AUTH + '/.well-known/openid-configuration')
     if data.get('issuer') != AUTH or not str(data.get('jwks_uri', '')).startswith(AUTH + '/'):
-        raise AuthError('La configuración de identidad de ChatGPT no es válida.')
+        raise AuthError('The ChatGPT identity configuration is invalid.')
     return data
 
 
@@ -135,7 +135,7 @@ def accounts(profile):
     with _locked(profile):
         data = _load(profile)
     return {'active': data['active'], 'accounts': [
-        {'client_id': a['client_id'], 'label': a.get('email') or a.get('subject') or 'Conexión pendiente', 'connected': bool(a.get('refresh_token'))}
+        {'client_id': a['client_id'], 'label': a.get('email') or a.get('subject') or 'Connection pending', 'connected': bool(a.get('refresh_token'))}
         for a in data['accounts']]}
 
 
@@ -143,7 +143,7 @@ def select_account(profile, client_id):
     with _locked(profile):
         data = _load(profile)
         if not any(a['client_id'] == client_id for a in data['accounts']):
-            raise AuthError('Selecciona una cuenta de ChatGPT conectada.')
+            raise AuthError('Select a connected ChatGPT account.')
         data['active'] = client_id; _save(profile, data)
 
 
@@ -181,15 +181,15 @@ def sign_in(profile, client_id='', timeout=240):
         if not existing:
             params['agent_name_hint'] = 'Anki Spanish Helper'
         if not webbrowser.open(AUTH + '/api/accounts/authorize?' + urlencode(params)):
-            raise AuthError('No se ha podido abrir el navegador para iniciar sesión con ChatGPT.')
+            raise AuthError('Could not open your browser to sign in with ChatGPT.')
         deadline = time.monotonic() + timeout
         while not result and time.monotonic() < deadline:
             server.handle_request()
     if not result or result.get('error') or not result.get('code'):
-        raise AuthError('El inicio de sesión se canceló o caducó. Puedes intentarlo otra vez.')
+        raise AuthError('Sign-in was cancelled or timed out. You can try again.')
     issued = result.get('client_id', client_id)
     if not issued or issued == 'dynamic_agent_client' or (existing and issued != existing['client_id']):
-        raise AuthError('ChatGPT no ha devuelto un registro válido para esta cuenta.')
+        raise AuthError('ChatGPT did not return a valid registration for this account.')
     # Keep the issued registration even if code exchange or validation fails.
     # It is not an authorized account until identity and granted scopes validate.
     with _locked(profile):
@@ -202,9 +202,9 @@ def sign_in(profile, client_id='', timeout=240):
     discovery = _discovery()
     identity = validate_identity(tokens.get('id_token', ''), issued, nonce, _request(discovery['jwks_uri']))
     if existing and existing.get('subject') and identity['sub'] != existing['subject']:
-        raise AuthError('La cuenta autorizada no coincide con la cuenta seleccionada. Usa Otra cuenta para añadirla.')
+        raise AuthError('The authorized account does not match the selected account. Use Add an account to connect it.')
     if 'chatgpt.tokens.use.direct' not in str(tokens.get('scope', '')).split() or not tokens.get('refresh_token') or not tokens.get('access_token'):
-        raise AuthError('No se ha autorizado el uso del plan ChatGPT. Vuelve a conectar y permite usar tu plan; no se utilizará una clave API como alternativa.')
+        raise AuthError('ChatGPT plan usage was not authorized. Reconnect and allow access to your plan.')
     first = not existing or not existing.get('welcome_shown')
     account = dict(client_id=issued, subject=identity['sub'], email=identity.get('email', ''), id_token=tokens['id_token'], welcome_shown=True,
                    access_token=tokens['access_token'], refresh_token=tokens['refresh_token'],
@@ -222,15 +222,15 @@ def _access(profile):
         data = _load(profile)
         account = next((a for a in data['accounts'] if a['client_id'] == data['active']), None)
         if not account or not account.get('refresh_token'):
-            raise AuthError('Abre Herramientas → Spanish Helper y pulsa Continue with ChatGPT para usar tu suscripción sin clave API.')
+            raise AuthError('Open Tools → Spanish Helper and click Continue with ChatGPT to use your subscription.')
         if account['expires_at'] < time.time() + 90 and time.time() >= account.get('earliest_refresh_at', 0):
             tokens = _request(AUTH + '/api/accounts/oauth/token', dict(grant_type='refresh_token',
                               client_id=account['client_id'], refresh_token=account['refresh_token'], resource=RESOURCE), form=True)
             if not tokens.get('access_token') or not tokens.get('refresh_token'):
-                raise AuthError('Vuelve a conectar tu cuenta de ChatGPT para renovar la sesión.')
+                raise AuthError('Reconnect your ChatGPT account to renew the session.')
             scopes = str(tokens.get('scope', ' '.join(account['scopes']))).split()
             if 'chatgpt.tokens.use.direct' not in scopes:
-                raise AuthError('El uso del plan ChatGPT no está autorizado. Vuelve a conectar desde los ajustes.')
+                raise AuthError('ChatGPT plan usage is not authorized. Reconnect in settings.')
             account.update(access_token=tokens['access_token'], refresh_token=tokens['refresh_token'], scopes=scopes,
                            expires_at=time.time() + float(tokens['expires_in']), earliest_refresh_at=float(tokens.get('earliest_refresh_at', 0)))
             _save(profile, data)
@@ -242,7 +242,7 @@ def models(profile):
     choices = [dict(slug=item['slug'], display_name=item.get('display_name', item['slug']))
                for item in catalog.get('models', []) if item.get('visibility') == 'list' and item.get('slug')]
     if not choices:
-        raise AuthError('Esta cuenta no ofrece modelos disponibles para el complemento. Revisa la elegibilidad de tu plan.')
+        raise AuthError('This account has no models available for the add-on. Check your plan eligibility.')
     return choices
 
 
@@ -255,7 +255,7 @@ def sign_out(profile):
             try:
                 endpoint = _discovery()['revocation_endpoint']
                 if not endpoint.startswith(AUTH + '/'):
-                    raise AuthError('No se puede revocar esta sesión automáticamente.')
+                    raise AuthError('Cannot revoke this session automatically.')
                 _request(endpoint, dict(token=account['refresh_token'], token_type_hint='refresh_token', client_id=account['client_id']), form=True)
             except (AuthError, KeyError):
                 confirmed = False
@@ -277,7 +277,7 @@ def response(profile, payload):
             for line in stream:
                 size += len(line)
                 if size > 2_000_000:
-                    raise AuthError('La respuesta de ChatGPT es demasiado grande.')
+                    raise AuthError('The ChatGPT response is too large.')
                 if line.strip():
                     if line.startswith(b'data:'):
                         event_lines.append(line[5:].strip())
@@ -288,11 +288,11 @@ def response(profile, payload):
                 if event.get('type') == 'response.completed':
                     return json.dumps(event['response']).encode(), 'application/json'
                 if event.get('type') in ('response.failed', 'response.incomplete', 'error'):
-                    raise AuthError('ChatGPT no completó la revisión. Revisa ChatGPT → Ajustes → Uso; puede ser un límite del plan o de esta aplicación. No se han usado créditos API.')
+                    raise AuthError('ChatGPT did not complete the check. Check ChatGPT → Settings → Usage; a plan or app limit may have been reached.')
     except HTTPError as error:
         if error.code in (403, 429):
-            raise AuthError('Tu plan ChatGPT no está disponible o ha alcanzado un límite. Revisa ChatGPT → Ajustes → Uso. No se han usado créditos API.') from None
-        raise AuthError('No se pudo completar la revisión con tu plan ChatGPT. Vuelve a conectar desde los ajustes.') from None
+            raise AuthError('Your ChatGPT plan is unavailable or has reached a limit. Check ChatGPT → Settings → Usage.') from None
+        raise AuthError('Could not complete the check using your ChatGPT plan. Reconnect in settings.') from None
     except (URLError, OSError, ValueError):
-        raise AuthError('La conexión con ChatGPT se interrumpió. Vuelve a intentarlo.') from None
-    raise AuthError('ChatGPT no confirmó que la revisión terminara. Vuelve a intentarlo.')
+        raise AuthError('The ChatGPT connection was interrupted. Please try again.') from None
+    raise AuthError('ChatGPT did not confirm that the check completed. Please try again.')

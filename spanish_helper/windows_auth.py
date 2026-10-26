@@ -16,7 +16,7 @@ class _Blob(ctypes.Structure):
 
 def protect(data, decrypt=False):
     if sys.platform != 'win32':
-        raise AuthError('El acceso con ChatGPT de este complemento requiere Windows.')
+        raise AuthError('ChatGPT sign-in for this add-on requires Windows.')
     crypt = ctypes.WinDLL('crypt32.dll', use_last_error=True)
     kernel = ctypes.WinDLL('kernel32.dll', use_last_error=True)
     kernel.LocalFree.argtypes = [ctypes.c_void_p]
@@ -29,7 +29,7 @@ def protect(data, decrypt=False):
                          ctypes.c_void_p, ctypes.c_void_p, wintypes.DWORD, ctypes.POINTER(_Blob)]
     function.restype = wintypes.BOOL
     if not function(ctypes.byref(source), None, None, None, None, 1, ctypes.byref(output)):
-        raise AuthError('Windows no puede proteger o leer la sesión de ChatGPT. Vuelve a iniciar sesión.')
+        raise AuthError('Windows cannot protect or read your ChatGPT session. Please sign in again.')
     try:
         return ctypes.string_at(output.data, output.size)
     finally:
@@ -40,7 +40,7 @@ def protect(data, decrypt=False):
 def verify_rs256(message, signature, modulus, exponent):
     """Verify RS256 with Windows CNG, not a custom cryptographic implementation."""
     if sys.platform != 'win32' or not 256 <= len(modulus) <= 1024 or not 1 <= len(exponent) <= 4:
-        raise AuthError('No se puede verificar la identidad de ChatGPT en este equipo.')
+        raise AuthError('Cannot verify your ChatGPT identity on this computer.')
     api = ctypes.WinDLL('bcrypt.dll')
     handle = ctypes.c_void_p
     api.BCryptOpenAlgorithmProvider.argtypes = [ctypes.POINTER(handle), wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.DWORD]
@@ -52,19 +52,19 @@ def verify_rs256(message, signature, modulus, exponent):
         getattr(api, name).restype = ctypes.c_long
     algorithm, key = handle(), handle()
     if api.BCryptOpenAlgorithmProvider(ctypes.byref(algorithm), 'RSA', None, 0) != 0:
-        raise AuthError('Windows no puede verificar la firma de ChatGPT.')
+        raise AuthError('Windows cannot verify the ChatGPT signature.')
     try:
         blob = struct.pack('<6I', 0x31415352, len(modulus) * 8, len(exponent), len(modulus), 0, 0) + exponent + modulus
         public = ctypes.create_string_buffer(blob)
         if api.BCryptImportKeyPair(algorithm, None, 'RSAPUBLICBLOB', ctypes.byref(key), public, len(blob), 0) != 0:
-            raise AuthError('La clave pública de ChatGPT no es válida.')
+            raise AuthError('The ChatGPT public key is invalid.')
         class Padding(ctypes.Structure):
             _fields_ = [('algorithm', wintypes.LPCWSTR)]
         padding = Padding('SHA256')
         digest = hashlib.sha256(message).digest()
         digest_buffer, signature_buffer = ctypes.create_string_buffer(digest), ctypes.create_string_buffer(signature)
         if api.BCryptVerifySignature(key, ctypes.byref(padding), digest_buffer, len(digest), signature_buffer, len(signature), 2) != 0:
-            raise AuthError('La firma de la identidad de ChatGPT no es válida.')
+            raise AuthError('The ChatGPT identity signature is invalid.')
     finally:
         if key:
             api.BCryptDestroyKey(key)

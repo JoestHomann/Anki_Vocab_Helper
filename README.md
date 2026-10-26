@@ -6,7 +6,7 @@ A compact toolbar in the Anki desktop review screen. It uses Anki's own light/da
 - **Pista** shows an example or explanation. **Alt+H** shows/hides the hint. When an example is available, the small speaker button beside it (**Escuchar ejemplo**) reads the whole sentence using your pronunciation and slow-audio settings. It ignores selected text and does not regenerate the hint or require an AI key. Definition-only hints have no example speaker.
 - **Comprobar** checks your saved Spanish word–translation pair with AI after you reveal the answer. **Alt+C** opens/closes the result. It uses your eligible ChatGPT subscription without an API key. The result reports a likely match, a nuance, a possible error, or uncertainty, with a suggested translation when appropriate. It checks the full saved pair, regardless of any selected text, and never edits your card.
 
-The interface and prepared examples use Spanish appropriate for a B1 learner. Saved dictionary hints have variable difficulty and are labelled accordingly. It follows both sides of the current card, clears hints on the next card, and ignores delayed responses for old cards. Notes, templates, scheduling and review history are never edited.
+The settings and sign-in messages use English. The review toolbar and prepared examples use Spanish appropriate for a B1 learner. Saved dictionary hints have variable difficulty and are labelled accordingly. It follows both sides of the current card, clears hints on the next card, and ignores delayed responses for old cards. Notes, templates, scheduling and review history are never edited.
 
 ## Install
 
@@ -31,7 +31,7 @@ For an existing local installation, add `-Update`. The installer backs up the ol
 
 Eligible ChatGPT Plus/Pro accounts can use plan allowances in local personal/open-source tools through the [official Sign in with ChatGPT integration](https://developers.openai.com/siwc/token-sharing-open-source). Account eligibility and plan/app usage limits still apply. **Manage usage** opens your ChatGPT usage settings. The toolbar identifies this mode with **Using ChatGPT plan**. There is no silent fallback to paid API calls when consent, eligibility, connection, or usage limits prevent a request.
 
-The browser callback is loopback-only, with random state, nonce, and PKCE. Identity signatures are verified using OpenAI's published signing keys and Windows CNG. OAuth sessions are encrypted with Windows DPAPI in the installed add-on's `user_files/chatgpt/` folder, separate for each Anki profile. Rotating refresh tokens are updated atomically and refreshes are serialized. No access/refresh tokens are written to configuration, logs, Git, or the preview server. Use the account picker to reconnect an existing registration or **Añadir una cuenta** to register another. **Cerrar sesión** revokes the active renewable session when possible and clears its local tokens; if revocation cannot be confirmed, the UI directs you to disconnect the app in ChatGPT settings.
+The browser callback is loopback-only, with random state, nonce, and PKCE. Identity signatures are verified using OpenAI's published signing keys and Windows CNG. OAuth sessions are encrypted with Windows DPAPI in the installed add-on's `user_files/chatgpt/` folder, separate for each Anki profile. Rotating refresh tokens are updated atomically and refreshes are serialized. No access/refresh tokens are written to configuration, logs, Git, or the preview server. Use the account picker to reconnect an existing registration or **Add an account** to register another. **Sign out** revokes the active renewable session when possible and clears its local tokens; if revocation cannot be confirmed, the UI directs you to disconnect the app in ChatGPT settings.
 
 End-to-end eligibility and live inference must be confirmed by completing your own sign-in. Automated tests use synthetic identities and controlled Responses streams; no real ChatGPT account was connected during development. The subscription integration uses Windows OS APIs and is currently Windows-only.
 
@@ -41,7 +41,7 @@ Version 1.3.1 uses subscription sign-in exclusively. The API-key route, key stor
 
 The checker sends only the Spanish word, your saved translation (up to 500 characters), and your card's example if present (up to 500 characters). It does not use the existing deck-hint library as evidence: those hints were prepared using the very translations being checked. The request uses `store: false`. Checks run only on an explicit click/shortcut after revealing the answer. Repeated checks of the same pair/model/example use a profile-session cache; edits and model changes select a new cache entry. Closing a profile clears the cache and session key.
 
-Set **Campo de traducción** if your saved translation uses a custom field. Otherwise `Translation`, `Meaning`, `Traducción`, `Back`, `answer`, and common German names are recognized. Set **Campo español** explicitly for unusual/reverse layouts. Missing fields or a disconnected ChatGPT account produce setup guidance, never a guessed verdict. AI results are suggestions, not authoritative verification; valid synonyms and individual meanings should be accepted, and ambiguity may produce an inconclusive result.
+Set **Translation field** if your saved translation uses a custom field. Otherwise `Translation`, `Meaning`, `Traducción`, `Back`, `answer`, and common German names are recognized. Set **Spanish field** explicitly for unusual/reverse layouts. Missing fields or a disconnected ChatGPT account produce setup guidance, never a guessed verdict. AI results are suggestions, not authoritative verification; valid synonyms and individual meanings should be accepted, and ambiguity may produce an inconclusive result.
 
 Desktop Anki with Python 3.9+ and Qt 6 is the target. It does not run in AnkiWeb, AnkiDroid or AnkiMobile. The integration is checked against the installed Anki runtime; see `output/validation.md` for actual verification results.
 
@@ -49,7 +49,7 @@ Desktop Anki with Python 3.9+ and Qt 6 is the target. It does not run in AnkiWeb
 
 The helper detects common field names (`Spanish`, `Español`, `Palabra`, `Expression`, `Word`, `Front`, `question`, `Vorderseite`) when that field appears on the current card side. Plain short cards also work automatically. It cannot reliably infer the Spanish vocabulary inside every custom or multilingual template.
 
-For consistent results, set **Campo español** to the exact field name used by your deck. This explicit mapping also makes the Spanish answer available on reverse cards. Alternatively, select the Spanish word directly on the card, then click either button. Fields called `Ejemplo`/`Example` and `Pista`/`Hint` are detected automatically; custom names can be set in the settings dialog.
+For consistent results, set **Spanish field** to the exact field name used by your deck. This explicit mapping also makes the Spanish answer available on reverse cards. Alternatively, select the Spanish word directly on the card, then click either button. Fields called `Ejemplo`/`Example` and `Pista`/`Hint` are detected automatically; custom names can be set in the settings dialog.
 
 ## Hints
 
@@ -62,7 +62,7 @@ The helper tries these in order:
 
 The current-deck hints work without an API key or Internet connection. See `output/audit/coverage.md` for the report. New cards added after the 19 October 2026 snapshot are outside this completed coverage audit and use the regular lookup fallback.
 
-For B1 explanations of words outside the local library, enable **Generar pistas B1 cuando no hay pista local**. These requests use your ChatGPT subscription and selected account model, just like translation checks. No AI requests happen merely by opening a card.
+For B1 explanations of words outside the local library, enable **Generate B1 hints when no local hint is available**. These requests use your ChatGPT subscription and selected account model, just like translation checks. No AI requests happen merely by opening a card.
 
 If a word has no local hint, dictionary example, or Spanish definition, the helper explains how to add an `Ejemplo` field or enable AI. Inflected words and regional expressions may be absent from the dictionary. Select the base form where possible. The local library matches articles (e.g. `la manzana`) but does not pretend to be a complete dictionary or automatic conjugation engine.
 

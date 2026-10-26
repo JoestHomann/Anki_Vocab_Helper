@@ -197,7 +197,7 @@ def state_changed(new_state, old_state):
 def settings():
     options = config()
     dialog = QDialog(mw)
-    dialog.setWindowTitle('Spanish Helper · Ajustes')
+    dialog.setWindowTitle('Spanish Helper · Settings')
     dialog.setMinimumWidth(510)
     outer = QVBoxLayout(dialog)
     scroll = QScrollArea()
@@ -208,15 +208,15 @@ def settings():
     outer.addWidget(scroll)
     available = dialog.screen().availableGeometry()
     dialog.resize(min(740, available.width() - 50), min(780, available.height() - 70))
-    intro = QLabel('Pronunciación, pistas y revisión de traducciones.\nLa comprobación con IA se ejecuta solo al pulsar Comprobar, después de mostrar la respuesta.')
+    intro = QLabel('Pronunciation, hints, and translation checks.\nAI checks run only when you click Comprobar (Check), after revealing the answer.')
     intro.setWordWrap(True)
     layout.addWidget(intro)
     form = QFormLayout()
     layout.addLayout(form)
     checks = {}
-    for name, label in [('enabled', 'Mostrar el ayudante'), ('online_audio', 'Pronunciación por Internet (Google)'),
-                        ('slow_audio', 'Pronunciación lenta'), ('online_dictionary', 'Ejemplos del diccionario (nivel variable)'),
-                        ('ai_hints', 'Generar pistas B1 cuando no hay pista local')]:
+    for name, label in [('enabled', 'Show Spanish Helper'), ('online_audio', 'Online pronunciation (Google)'),
+                        ('slow_audio', 'Slow pronunciation'), ('online_dictionary', 'Dictionary examples (difficulty varies)'),
+                        ('ai_hints', 'Generate B1 hints when no local hint is available')]:
         box = QCheckBox(label)
         box.setChecked(bool(options[name]))
         form.addRow(box)
@@ -225,9 +225,9 @@ def settings():
     profile = mw.pm.profileFolder()
     account_picker, model_picker = QComboBox(), QComboBox()
     model_picker.setObjectName('chatgptModel')
-    model_picker.addItem('Automático: modelo disponible del plan', options['chatgpt_model'])
-    account_picker.addItem('Añadir una cuenta', '')
-    auth_status = QLabel('Conecta tu cuenta para usar tu suscripción de ChatGPT.')
+    model_picker.addItem('Automatic: available model from your plan', options['chatgpt_model'])
+    account_picker.addItem('Add an account', '')
+    auth_status = QLabel('Connect your account to use your ChatGPT subscription.')
     auth_status.setWordWrap(True)
     try:
         saved = chatgpt.accounts(profile)
@@ -236,14 +236,14 @@ def settings():
         index = account_picker.findData(saved['active'])
         account_picker.setCurrentIndex(max(index, 0))
         if saved['active']:
-            auth_status.setText('Using ChatGPT plan · Reanuda la sesión automáticamente.')
+            auth_status.setText('Using ChatGPT plan · Reconnects automatically.')
     except (chatgpt.AuthError, OSError):
-        auth_status.setText('Conecta ChatGPT para usar tu plan. Disponible en Windows.')
-    form.addRow('Cuenta ChatGPT', account_picker)
-    form.addRow('Modelo del plan', model_picker)
+        auth_status.setText('Connect ChatGPT to use your plan. Available on Windows.')
+    form.addRow('ChatGPT account', account_picker)
+    form.addRow('Plan model', model_picker)
     auth_row = QHBoxLayout()
     connect = QPushButton('Continue with ChatGPT')
-    disconnect = QPushButton('Cerrar sesión')
+    disconnect = QPushButton('Sign out')
     manage = QPushButton('Manage usage')
     for button in (connect, disconnect, manage):
         auth_row.addWidget(button)
@@ -254,14 +254,14 @@ def settings():
     def fill_models(choices):
         previous = model_picker.currentData()
         model_picker.clear()
-        model_picker.addItem('Automático: modelo disponible del plan', '')
+        model_picker.addItem('Automatic: available model from your plan', '')
         for choice in choices:
             model_picker.addItem(choice['display_name'], choice['slug'])
         index = model_picker.findData(previous)
         model_picker.setCurrentIndex(max(index, 0))
     def auth_job(work, done):
         connect.setEnabled(False); disconnect.setEnabled(False)
-        auth_status.setText('Un momento… Completa el inicio de sesión en tu navegador si se abre.')
+        auth_status.setText('Please wait… Complete sign-in in your browser if it opens.')
         def complete(future):
             connect.setEnabled(True); disconnect.setEnabled(True)
             hint_cache.clear(); check_cache.clear()
@@ -270,12 +270,12 @@ def settings():
             try:
                 done(future.result())
             except Exception as error:
-                auth_status.setText(str(error) if isinstance(error, chatgpt.AuthError) else 'No se pudo completar la conexión. Inténtalo de nuevo.')
+                auth_status.setText(str(error) if isinstance(error, chatgpt.AuthError) else 'Could not complete the connection. Please try again.')
         mw.taskman.run_in_background(work, complete)
     def connected(result):
         auth_status.setText('Using ChatGPT plan · ' + result['identity']['label'])
         account_picker.blockSignals(True)
-        account_picker.clear(); account_picker.addItem('Añadir una cuenta', '')
+        account_picker.clear(); account_picker.addItem('Add an account', '')
         saved = chatgpt.accounts(profile)
         for account in saved['accounts']:
             account_picker.addItem(account['label'] + ' · ' + account['client_id'][-6:], account['client_id'])
@@ -283,7 +283,7 @@ def settings():
         account_picker.blockSignals(False)
         fill_models(result['models'])
         if result['identity']['first']:
-            showInfo('You’re using your ChatGPT plan.\nLas solicitudes de IA usan los límites de tu plan. Puedes gestionar el uso en los ajustes de ChatGPT.', parent=dialog)
+            showInfo('You’re using your ChatGPT plan.\nAI requests count toward your plan limits. You can manage usage in ChatGPT settings.', parent=dialog)
     def start_sign_in():
         selected = account_picker.currentData() or ''
         def work():
@@ -303,19 +303,21 @@ def settings():
     connect.clicked.connect(start_sign_in)
     account_picker.currentIndexChanged.connect(choose_account)
     def disconnected(confirmed):
-        auth_status.setText('Sesión cerrada.' if confirmed else 'Sesión local cerrada; la revocación remota no se confirmó. Desconecta la aplicación en los ajustes de ChatGPT.')
+        auth_status.setText('Signed out.' if confirmed else 'Signed out locally. Remote sign-out could not be confirmed. Disconnect the app in ChatGPT settings.')
     disconnect.clicked.connect(lambda: auth_job(lambda: chatgpt.sign_out(profile), disconnected))
     manage.clicked.connect(lambda: __import__('webbrowser').open(chatgpt.USAGE_URL))
-    for name, label in [('word_field', 'Campo español (vacío = automático)'),
-                        ('translation_field', 'Campo de traducción (vacío = automático)'),
-                        ('example_field', 'Campo de ejemplo (opcional)'), ('hint_field', 'Campo de pista (opcional)')]:
+    for name, label in [('word_field', 'Spanish field (blank = automatic)'),
+                        ('translation_field', 'Translation field (blank = automatic)'),
+                        ('example_field', 'Example field (optional)'), ('hint_field', 'Hint field (optional)')]:
         edit = QLineEdit(str(options[name]))
         form.addRow(label, edit)
         edits[name] = edit
-    privacy = QLabel('Comprobar envía a OpenAI la palabra, tu traducción y el ejemplo.\nLas solicitudes de IA usan tu suscripción de ChatGPT y están sujetas a sus límites.\nLa conexión se recuerda de forma segura con Windows.\nNo se guardan secretos en la configuración ni se sincronizan con Anki. La revisión no modifica tus tarjetas.')
+    privacy = QLabel('Translation checks send the word, your translation, and the example to OpenAI.\nAI requests use your ChatGPT subscription and are subject to its limits.\nWindows securely remembers your connection.\nSecrets are never stored in settings or synced with Anki. Checks do not modify your cards.')
     privacy.setWordWrap(True)
     layout.addWidget(privacy)
     buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
+    buttons.button(QDialogButtonBox.StandardButton.Save).setText('Save')
+    buttons.button(QDialogButtonBox.StandardButton.Cancel).setText('Cancel')
     buttons.accepted.connect(dialog.accept)
     buttons.rejected.connect(dialog.reject)
     outer.addWidget(buttons)
