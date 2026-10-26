@@ -1,96 +1,134 @@
 (() => {
   if (window.SpanishHelper) return;
-  let host, root, data, busy = new Set(), expanded = false, lastSelection = '';
-  const speaker = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></svg>';
-  const bulb = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 2H9s0-1-1-2Z"/></svg>';
-  const el = (id) => root.getElementById(id);
+  let host, root, data, busy = new Set(), activePanel = '', lastSelection = '';
+  let sizeObserver, themeObserver, checkResult = null;
+  const icon = paths => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
+  const speaker = icon('<path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/>');
+  const bulb = icon('<path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 2H9s0-1-1-2Z"/>');
+  const check = icon('<path d="M9 12l2 2 4-4"/><path d="M12 3l8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Z"/>');
+  const close = icon('<path d="m6 6 12 12M6 18 18 6"/>');
+  const el = id => root.getElementById(id);
   function captureSelection() {
     const selection = window.getSelection();
     const qa = document.getElementById('qa');
     if (selection && qa && selection.rangeCount && qa.contains(selection.anchorNode) && qa.contains(selection.focusNode)) {
       const text = selection.toString().trim();
-      if (text && text.length <= 180) lastSelection = text;
-      else lastSelection = '';
+      lastSelection = text && text.length <= 180 ? text : '';
     } else lastSelection = '';
   }
   function sync() {
-    for (const action of ['pronounce', 'hint']) {
-      el(action).disabled = busy.has(action);
-      el(action).setAttribute('aria-busy', String(busy.has(action)));
+    for (const name of ['pronounce', 'hint', 'check']) {
+      el(name).disabled = busy.has(name) || (name === 'check' && !data.answerShown);
+      el(name).setAttribute('aria-busy', String(busy.has(name)));
     }
-    el('hint').setAttribute('aria-expanded', String(expanded));
-    el('hint-panel').hidden = !expanded;
-    el('hint-label').textContent = busy.has('hint') ? 'Buscando…' : expanded ? 'Ocultar pista' : 'Dame una pista';
-    el('pronounce-label').textContent = busy.has('pronounce') ? 'Preparando…' : 'Pronunciar';
+    for (const name of ['hint', 'check']) {
+      el(name).setAttribute('aria-expanded', String(activePanel === name));
+      el(name + '-panel').hidden = activePanel !== name;
+    }
+    el('hint-label').textContent = busy.has('hint') ? 'Buscando…' : 'Pista';
+    el('pronounce-label').textContent = busy.has('pronounce') ? 'Cargando…' : 'Pronunciar';
+    el('check-label').textContent = busy.has('check') ? 'Comprobando…' : 'Comprobar';
   }
   function action(name) {
-    if (busy.has(name)) return;
-    if (name === 'hint' && expanded) { expanded = false; sync(); return; }
-    captureSelection();
+    if (busy.has(name) || (name === 'check' && !data.answerShown)) return;
+    if (name !== 'pronounce' && activePanel === name) { activePanel = ''; sync(); return; }
+    // Reopening a completed check does not perform another paid request.
+    if (name === 'check' && checkResult) {
+      activePanel = name; el('status').textContent = ''; sync(); return;
+    }
+    if (name !== 'check') captureSelection();
     busy.add(name);
-    el('status').textContent = name === 'hint' ? 'Un momento, buscamos una pista…' : 'Preparando la pronunciación…';
+    el('status').textContent = {hint: 'Buscando una pista…', pronounce: 'Preparando la pronunciación…', check: 'Revisando tu traducción…'}[name];
     el('status').dataset.error = 'false';
     sync();
-    const request = {token: data.token, action: name, selection: lastSelection, selectionOnCard: !!lastSelection};
+    const request = {token: data.token, action: name, selection: name === 'check' ? '' : lastSelection, selectionOnCard: name !== 'check' && !!lastSelection};
     if (typeof window.pycmd === 'function') window.pycmd('spanish-helper:' + JSON.stringify(request));
     else receive({event: 'error', token: data.token, action: name, message: 'Abre esta tarjeta en Anki para usar el ayudante.'});
   }
   function destroy() {
+    if (sizeObserver) sizeObserver.disconnect();
+    if (themeObserver) themeObserver.disconnect();
     if (host) host.remove();
     const spacer = document.getElementById('spanish-helper-space');
     if (spacer) spacer.remove();
     host = null;
-    if (window.__spanishHelperObserver) window.__spanishHelperObserver.disconnect();
   }
   function mount(next, css) {
-    destroy(); data = next; busy.clear(); expanded = false; lastSelection = '';
+    destroy(); data = next; busy.clear(); activePanel = ''; lastSelection = ''; checkResult = null;
     host = document.createElement('div'); host.id = 'spanish-helper';
     root = host.attachShadow({mode: 'open'});
     const style = document.createElement('style'); style.textContent = css; root.append(style);
     const panel = document.createElement('section');
     panel.className = 'helper'; panel.setAttribute('aria-label', 'Ayudante de español'); panel.lang = 'es';
-    panel.innerHTML = '<header><span class="eyebrow"><i></i> TU COMPAÑERO DE ESPAÑOL</span><span class="level">B1</span></header>' +
-      '<div class="heading"><span id="word"></span><span class="tagline">Una pequeña ayuda para seguir.</span></div>' +
-      '<div class="actions"><button type="button" id="pronounce">' + speaker + '<span id="pronounce-label">Pronunciar</span><kbd>Alt P</kbd></button>' +
-      '<button type="button" id="hint" aria-controls="hint-panel" aria-expanded="false">' + bulb + '<span id="hint-label">Dame una pista</span><kbd>Alt H</kbd></button></div>' +
-      '<div id="hint-panel" hidden><div class="hint-kind" id="hint-kind">EN CONTEXTO</div><p id="example"></p><p id="explanation"></p><a id="source" target="_blank" rel="noopener noreferrer"></a></div>' +
-      '<div id="status" role="status" aria-live="polite">Selecciona una palabra para practicar solo esa parte.</div>';
+    panel.innerHTML = '<div id="hint-panel" class="result" role="region" aria-labelledby="hint-title" hidden>' +
+      '<div class="result-header"><span class="result-title" id="hint-title">Pista</span><button class="close" type="button" aria-label="Cerrar pista">' + close + '</button></div>' +
+      '<p id="example"></p><p id="explanation"></p><a class="source" id="source" target="_blank" rel="noopener noreferrer"></a></div>' +
+      '<div id="check-panel" class="result" role="region" aria-labelledby="check-verdict" hidden>' +
+      '<div class="result-header"><span class="result-title verdict" id="check-verdict"></span><button class="close" type="button" aria-label="Cerrar comprobación">' + close + '</button></div>' +
+      '<div class="saved"><span class="field-label">Tu traducción guardada</span><span id="check-saved"></span></div><p id="check-explanation"></p>' +
+      '<div class="suggestion" id="suggestion"><span class="field-label">Propuesta</span><span id="check-suggestion"></span></div>' +
+      '<span class="source" id="check-source"></span><p class="note">La IA puede equivocarse. Tu tarjeta no se modifica.</p></div>' +
+      '<div class="actions" role="group" aria-label="Herramientas de español">' +
+      '<button type="button" id="pronounce" title="Pronunciar la palabra o selección (Alt+P)" aria-label="Pronunciar" aria-keyshortcuts="Alt+P">' + speaker + '<span id="pronounce-label">Pronunciar</span><kbd aria-hidden="true">Alt P</kbd></button>' +
+      '<button type="button" id="hint" aria-label="Pista" title="Mostrar una pista (Alt+H)" aria-keyshortcuts="Alt+H" aria-controls="hint-panel" aria-expanded="false">' + bulb + '<span id="hint-label">Pista</span><kbd aria-hidden="true">Alt H</kbd></button>' +
+      '<button type="button" id="check" aria-label="Comprobar traducción" aria-keyshortcuts="Alt+C" aria-controls="check-panel" aria-expanded="false">' + check + '<span id="check-label">Comprobar</span><kbd aria-hidden="true">Alt C</kbd></button></div>' +
+      '<div id="status" role="status" aria-live="polite" aria-atomic="true"></div>';
     root.append(panel); document.body.append(host);
-    el('word').textContent = next.word || '¿Qué palabra practicamos?';
-    for (const name of ['pronounce', 'hint']) {
+    el('check').title = next.answerShown ? 'Revisar tu traducción guardada con IA (Alt+C)' : 'Muestra primero la respuesta para comprobar tu traducción';
+    for (const name of ['pronounce', 'hint', 'check']) {
       el(name).addEventListener('pointerdown', captureSelection);
-      el(name).addEventListener('click', (event) => { event.preventDefault(); event.stopPropagation(); action(name); });
+      el(name).addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); action(name); });
     }
+    for (const button of root.querySelectorAll('.close')) button.addEventListener('click', event => {
+      event.preventDefault(); event.stopPropagation();
+      const returnFocus = activePanel; activePanel = ''; sync();
+      if (returnFocus) el(returnFocus).focus();
+    });
+    // The toolbar occupies only the review webview; Anki's answer/rating bar is separate.
     const spacer = document.createElement('div'); spacer.id = 'spanish-helper-space'; spacer.setAttribute('aria-hidden', 'true'); document.body.append(spacer);
-    window.__spanishHelperObserver = new ResizeObserver(() => { spacer.style.height = (panel.getBoundingClientRect().height + 42) + 'px'; });
-    window.__spanishHelperObserver.observe(panel);
-    // Match Anki's theme even when its own styles cannot cross the shadow boundary.
-    host.dataset.dark = String(document.body.classList.contains('nightMode') || document.documentElement.classList.contains('night-mode'));
-    sync();
+    sizeObserver = new ResizeObserver(() => { spacer.style.height = (host.getBoundingClientRect().height + 12) + 'px'; });
+    sizeObserver.observe(host);
+    const matchTheme = () => {
+      host.dataset.dark = String(document.body.classList.contains('nightMode') || document.documentElement.classList.contains('night-mode'));
+      host.dataset.fancy = String(document.body.classList.contains('fancy'));
+    };
+    themeObserver = new MutationObserver(matchTheme);
+    for (const element of [document.body, document.documentElement]) themeObserver.observe(element, {attributes:true, attributeFilter:['class']});
+    matchTheme(); sync();
   }
   function receive(message) {
     if (!host || message.token !== data.token) return;
     if (message.event === 'hint') {
-      busy.delete('hint'); expanded = true;
-      el('hint-kind').textContent = message.example ? 'EN CONTEXTO' : 'SIGNIFICADO';
+      busy.delete('hint'); activePanel = 'hint';
+      el('hint-title').textContent = message.example ? 'En contexto' : 'Significado';
       el('example').textContent = message.example || ''; el('example').hidden = !message.example;
       el('explanation').textContent = message.explanation || ''; el('explanation').hidden = !message.explanation;
       el('source').textContent = message.source || '';
       if (message.url && (message.url.startsWith('https://en.wiktionary.org/') || message.url.startsWith('https://es.wiktionary.org/'))) el('source').href = message.url;
       else el('source').removeAttribute('href');
-      el('status').textContent = 'Piensa en el significado. Dale tiempo a tu memoria.';
+      el('status').textContent = ''; el('status').dataset.error = 'false';
+    } else if (message.event === 'check') {
+      busy.delete('check'); activePanel = 'check'; checkResult = message;
+      el('check-verdict').textContent = {correct:'Parece correcta', partial:'Necesita un matiz', incorrect:'Posible error', uncertain:'No concluyente'}[message.verdict] || 'No concluyente';
+      el('check-verdict').dataset.verdict = message.verdict;
+      el('check-saved').textContent = message.saved || '';
+      el('check-explanation').textContent = message.explanation || '';
+      el('check-suggestion').textContent = message.suggestion || '';
+      el('suggestion').hidden = !message.suggestion;
+      el('check-source').textContent = message.source || '';
+      el('status').textContent = ''; el('status').dataset.error = 'false';
     } else if (message.event === 'audio') {
-      busy.delete('pronounce'); el('status').textContent = 'Escucha y repite: ' + message.word;
+      busy.delete('pronounce'); el('status').textContent = ''; el('status').dataset.error = 'false';
     } else if (message.event === 'error') {
       busy.delete(message.action); el('status').textContent = message.message; el('status').dataset.error = 'true';
     }
     sync();
   }
   document.addEventListener('selectionchange', () => { if (host) captureSelection(); });
-  document.addEventListener('keydown', (event) => {
+  document.addEventListener('keydown', event => {
     if (!host || !event.altKey || event.ctrlKey || event.metaKey || event.repeat) return;
-    if (event.target.closest && event.target.closest('input,textarea,[contenteditable="true"]')) return;
-    const name = {p: 'pronounce', h: 'hint'}[event.key.toLowerCase()];
+    if (event.composedPath().some(target => target.matches?.('input,textarea,select,[contenteditable="true"]'))) return;
+    const name = {p:'pronounce', h:'hint', c:'check'}[event.key.toLowerCase()];
     if (name) { event.preventDefault(); event.stopPropagation(); action(name); }
   });
   window.SpanishHelper = {mount, receive, destroy};

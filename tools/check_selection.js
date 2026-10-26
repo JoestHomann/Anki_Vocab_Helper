@@ -17,9 +17,9 @@ async page => {
       const selection = window.getSelection();
       selection.removeAllRanges(); selection.addRange(range);
     });
-    await page.getByRole('button', { name: 'Pronunciar Alt P', exact: true }).click();
+    await page.getByRole('button', { name: 'Pronunciar', exact: true }).click();
     await page.evaluate(() => window.getSelection().removeAllRanges());
-    await page.getByRole('button', { name: 'Pronunciar Alt P', exact: true }).click();
+    await page.getByRole('button', { name: 'Pronunciar', exact: true }).click();
     const requests = await page.evaluate(() => window.__selectionRequests);
     if (requests[0].selection !== 'ahorra') throw new Error('Selected text was not sent');
     if (requests[1].selection !== '') throw new Error('Cleared selection is still being used');

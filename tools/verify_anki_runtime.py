@@ -33,6 +33,7 @@ jobs = []
 window.taskman = SimpleNamespace(run_in_background=lambda task, done: jobs.append((task, done)))
 window.state = 'review'
 window.reviewer = Reviewer.__new__(Reviewer)
+window.reviewer.state = 'question'
 scripts = []
 window.reviewer.web = SimpleNamespace(eval=scripts.append, evalWithCallback=lambda js, callback: callback('ahorrar'))
 aqt.mw = window
@@ -106,8 +107,61 @@ QTimer.singleShot(0, lambda: next(w for w in app.topLevelWidgets() if isinstance
 addon.settings()
 print('PASS: real Qt settings dialog opens and saves')
 
+# Checking is explicit, independent of selected text, cached, and answer-side only.
+window.state = 'review'
+window.reviewer.state = 'question'
+window.reviewer.card = card('embarazada')
+addon.show_card(window.reviewer.card)
+before = len(jobs)
+click('check')
+assert len(jobs) == before and 'Muestra primero' in scripts[-1]
+window.reviewer.state = 'answer'
+window.reviewer.web.evalWithCallback = lambda js, callback: callback('embarazada sparen')
+addon.show_card(window.reviewer.card)
+addon.state['key'] = 'test-key'
+checked = {'verdict': 'incorrect', 'explanation': 'No es una traducción válida.', 'suggestion': 'schwanger', 'saved': 'sparen', 'source': 'test'}
+with patch.object(addon, 'check_translation', return_value=checked) as checker:
+    message = 'spanish-helper:' + json.dumps({'token': addon.state['token'], 'action': 'check', 'selection': 'other text', 'selectionOnCard': True})
+    addon.handle_message((False, None), message, window.reviewer)
+    # Double-clicking while a job is outstanding must not create a second request.
+    click('check')
+    assert len(jobs) == 1
+    finish()
+    assert checker.call_args.args[0].word == 'embarazada'
+    assert checker.call_args.args[0].meaning == 'sparen'
+    assert 'incorrect' in scripts[-1] and 'schwanger' in scripts[-1]
+    click('check')
+    finish()
+    assert checker.call_count == 1
+    # Editing the saved translation invalidates the previous pair's cache.
+    window.reviewer.card = SimpleNamespace(note=lambda: {'Spanish': 'embarazada', 'Back': 'schwanger'})
+    addon.show_card(window.reviewer.card)
+    click('check')
+    finish()
+    assert checker.call_count == 2
+    # A late check response must not reach the next card or enter the cache.
+    window.reviewer.card = card('nuevo')
+    addon.show_card(window.reviewer.card)
+    click('check')
+    window.reviewer.card = card('otro')
+    addon.show_card(window.reviewer.card)
+    before = len(scripts)
+    finish()
+    assert len(scripts) == before
+print('PASS: answer-only translation check, saved pair, duplicate clicks, caching, edits and stale replies')
+
+addon.check_cache.clear()
+addon.state['key'] = ''
+addon.show_card(window.reviewer.card)
+with patch.dict(os.environ, {}, clear=True):
+    click('check')
+    finish()
+assert 'clave de OpenAI' in scripts[-1]
+print('PASS: missing API key has an actionable error without a network call')
+
 addon.state['key'] = 'temporary-test-key'
 addon.profile_closed()
 assert addon.state['key'] == ''
+assert not addon.check_cache
 print('PASS: session key cleared on profile close')
 print('Anki runtime:', version)

@@ -83,7 +83,8 @@ def extract_context(fields: dict[str, str], visible_text: str, config: dict) -> 
         word=word[:180],
         example=first_field(fields, [config.get('example_field', ''), 'Example', 'Ejemplo', 'Example Sentence', 'Frase', 'Sentence', 'Beispielsatz']),
         explanation=first_field(fields, [config.get('hint_field', ''), 'Hint', 'Pista', 'Explicación', 'Explicacion', 'Definición', 'Definicion']),
-        meaning=first_field(fields, ['Meaning', 'Translation', 'Bedeutung', 'Übersetzung', 'Back', 'Reverso', 'answer', 'Rückseite']),
+        meaning=first_field(fields, [config['translation_field']]) if config.get('translation_field', '').strip() else first_field(
+            fields, ['Meaning', 'Translation', 'Traducción', 'Traduccion', 'Bedeutung', 'Übersetzung', 'Back', 'Reverso', 'answer', 'Rückseite']),
     )
 
 

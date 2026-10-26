@@ -15,7 +15,7 @@ from aqt.sound import av_player
 from anki.sound import TTSTag
 
 from .core import extract_context, is_current, local_hint, plain_text
-from .services import HelperError, ai_hint, dictionary_hint, get_audio
+from .services import HelperError, ai_hint, check_translation, dictionary_hint, get_audio
 
 ROOT = Path(__file__).parent
 VOCABULARY = json.loads((ROOT / 'vocabulary.json').read_text(encoding='utf-8'))
@@ -25,6 +25,7 @@ CSS = (ROOT / 'web' / 'overlay.css').read_text(encoding='utf-8')
 JS = (ROOT / 'web' / 'overlay.js').read_text(encoding='utf-8')
 state = {'token': '', 'context': None, 'key': '', 'busy': set()}
 hint_cache = {}
+check_cache = {}
 
 
 def config():
@@ -55,7 +56,8 @@ def show_card(card):
             return
         context = extract_context(fields, str(text or ''), options)
         state['context'] = context
-        payload = json.dumps({'token': token, 'word': context.word}, ensure_ascii=True)
+        payload = json.dumps({'token': token, 'word': context.word,
+                              'answerShown': getattr(mw.reviewer, 'state', '') == 'answer'}, ensure_ascii=True)
         web.eval(JS + '\nwindow.SpanishHelper.mount(' + payload + ',' + json.dumps(CSS) + ');')
 
     web.evalWithCallback("document.getElementById('qa')?.innerText || ''", got_visible)
@@ -69,12 +71,15 @@ def handle_message(handled, message, context):
         token, action = request['token'], request['action']
         if not is_current(token, state['token'], mw.state == 'review') or state['context'] is None:
             return (True, None)
-        if action not in ('pronounce', 'hint') or action in state['busy']:
+        if action not in ('pronounce', 'hint', 'check') or action in state['busy']:
+            return (True, None)
+        if action == 'check' and getattr(mw.reviewer, 'state', '') != 'answer':
+            send('error', action=action, message='Muestra primero la respuesta para comprobar tu traducción sin adelantarla.')
             return (True, None)
         selected = plain_text(str(request.get('selection', '')))
         # Only allow vocabulary actually present on the displayed card.
         card_context = state['context']
-        if selected and len(selected) <= 180 and request.get('selectionOnCard') is True:
+        if action != 'check' and selected and len(selected) <= 180 and request.get('selectionOnCard') is True:
             card_context = replace(card_context, word=selected, example='', explanation='', meaning='')
         if not card_context.word:
             send('error', action=action, message='Selecciona una palabra de la tarjeta o configura el campo en Herramientas → Spanish Helper.')
@@ -90,8 +95,13 @@ def handle_message(handled, message, context):
         state['busy'].add(action)
         key = state['key'] or os.environ.get('OPENAI_API_KEY', '')
         cache_key = (card_context, options['ai_hints'], options['model'])
+        check_key = (card_context.word, card_context.meaning, card_context.example, options['check_model'])
 
         def work():
+            if action == 'check':
+                if check_key in check_cache:
+                    return check_cache[check_key]
+                return check_translation(card_context, key, options['check_model'])
             if action == 'pronounce':
                 return get_audio(card_context.word, ROOT / 'user_files' / 'audio', options['slow_audio'])
             saved = local_hint(card_context, VOCABULARY, DECK_HINTS)
@@ -121,6 +131,11 @@ def handle_message(handled, message, context):
             if action == 'pronounce':
                 av_player.play_file(str(result))
                 send('audio', word=card_context.word)
+            elif action == 'check':
+                if len(check_cache) >= 250:
+                    check_cache.clear()
+                check_cache[check_key] = result
+                send('check', word=card_context.word, **result)
             else:
                 if len(hint_cache) > 250:
                     hint_cache.clear()
@@ -131,7 +146,7 @@ def handle_message(handled, message, context):
     except (ValueError, KeyError, TypeError):
         pass
     except HelperError as error:
-        send('error', action='pronounce', message=str(error))
+        send('error', action=locals().get('action', 'pronounce'), message=str(error))
     return (True, None)
 
 
@@ -148,7 +163,7 @@ def settings():
     dialog.setWindowTitle('Spanish Helper · Ajustes')
     dialog.setMinimumWidth(510)
     layout = QVBoxLayout(dialog)
-    intro = QLabel('Dos botones para practicar español. Las pistas locales son de nivel B1.\nSelecciona texto en una tarjeta para practicar solo esa palabra.')
+    intro = QLabel('Pronunciación, pistas y revisión de traducciones.\nLa comprobación con IA se ejecuta solo al pulsar Comprobar, después de mostrar la respuesta.')
     intro.setWordWrap(True)
     layout.addWidget(intro)
     form = QFormLayout()
@@ -162,8 +177,10 @@ def settings():
         form.addRow(box)
         checks[name] = box
     edits = {}
-    for name, label in [('word_field', 'Campo español (vacío = automático)'), ('example_field', 'Campo de ejemplo (opcional)'),
-                        ('hint_field', 'Campo de pista (opcional)'), ('model', 'Modelo de OpenAI')]:
+    for name, label in [('word_field', 'Campo español (vacío = automático)'),
+                        ('translation_field', 'Campo de traducción (vacío = automático)'),
+                        ('example_field', 'Campo de ejemplo (opcional)'), ('hint_field', 'Campo de pista (opcional)'),
+                        ('model', 'Modelo para pistas'), ('check_model', 'Modelo para comprobar (económico)')]:
         edit = QLineEdit(str(options[name]))
         form.addRow(label, edit)
         edits[name] = edit
@@ -171,7 +188,7 @@ def settings():
     key.setEchoMode(QLineEdit.EchoMode.Password)
     key.setPlaceholderText('Solo para esta sesión; o usa OPENAI_API_KEY')
     form.addRow('Clave de OpenAI', key)
-    privacy = QLabel('Al pulsar un botón, el texto elegido se envía al servicio activado.\nLa IA recibe también el significado de la tarjeta para elegir el sentido correcto.\nLa clave introducida aquí no se guarda en disco. El audio se guarda localmente.\nLos ejemplos del diccionario proceden de Wiktionary (CC BY-SA).')
+    privacy = QLabel('Comprobar envía a OpenAI la palabra española, tu traducción y el ejemplo, si existe.\nRequiere una clave API y saldo; no usa la suscripción de ChatGPT. Las pistas con IA pueden seguir desactivadas.\nLa revisión puede equivocarse. No modifica tus tarjetas. La clave no se guarda en disco.\nEl audio se guarda localmente. Los ejemplos del diccionario proceden de Wiktionary (CC BY-SA).')
     privacy.setWordWrap(True)
     layout.addWidget(privacy)
     buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
@@ -182,9 +199,11 @@ def settings():
         options.update({name: box.isChecked() for name, box in checks.items()})
         options.update({name: edit.text().strip() for name, edit in edits.items()})
         options['model'] = options['model'] or DEFAULTS['model']
+        options['check_model'] = options['check_model'] or DEFAULTS['check_model']
         state['key'] = key.text().strip()
         mw.addonManager.writeConfig(__name__, options)
         hint_cache.clear()
+        check_cache.clear()
         if mw.state == 'review' and mw.reviewer.card:
             show_card(mw.reviewer.card)
 
@@ -192,6 +211,7 @@ def settings():
 def profile_closed():
     state['key'] = ''
     hint_cache.clear()
+    check_cache.clear()
     state_changed('deckBrowser', 'review')
 
 

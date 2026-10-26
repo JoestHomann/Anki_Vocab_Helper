@@ -5,6 +5,7 @@ from urllib.parse import urlsplit
 import argparse
 import importlib
 import json
+import os
 import sys
 import types
 
@@ -55,6 +56,9 @@ class Handler(SimpleHTTPRequestHandler):
             elif request['action'] == 'hint':
                 context = core.CardContext(word)
                 result = {'event': 'hint', 'word': word, **(core.local_hint(context, vocabulary, deck_hints) or services.dictionary_hint(word))}
+            elif request['action'] == 'check':
+                context = core.CardContext(word, meaning=str(request.get('meaning', '')))
+                result = {'event': 'check', **services.check_translation(context, os.environ.get('OPENAI_API_KEY', ''), 'gpt-6-luna')}
             else:
                 raise ValueError('Unknown action')
         except Exception as error:

@@ -1,50 +1,62 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Spanish Helper · Vista previa</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%2334664c'/%3E%3Ctext x='10' y='29' fill='white' font-size='27' font-family='Georgia'%3Eñ%3C/text%3E%3C/svg%3E">
-  <style>
-    *{box-sizing:border-box} body{margin:0;background:#f6f5f0;color:#293b34;font:15px/1.5 'Segoe UI',system-ui,sans-serif} nav{height:65px;border-bottom:1px solid #dddfd7;display:flex;align-items:center;justify-content:space-between;padding:0 40px;background:#fffdf9} .brand{font-family:Georgia,serif;font-size:23px}.brand span{font:11px 'Segoe UI',sans-serif;color:#82907e;margin-left:15px;letter-spacing:1px} nav a{color:#5a6e60;text-decoration:none;font-size:12px} main{width:min(760px,calc(100% - 48px));margin:54px auto} .crumb{font-size:10px;letter-spacing:1.6px;color:#788476;margin-bottom:20px} .review{background:#fffdf9;border:1px solid #e0e3d9;border-radius:18px;min-height:340px;padding:45px;text-align:center} .progress{display:flex;justify-content:space-between;color:#7f897a;font-size:11px}.dots{letter-spacing:7px;color:#89a47c} #qa{margin:52px 0 18px} .card-word{font:54px/1.2 Georgia,serif;letter-spacing:-1px;margin:0} .prompt{font-size:13px;color:#838c7e;margin:17px 0 0} .translation{font-size:22px;color:#638064} .review-actions{display:flex;justify-content:center;gap:10px;margin-top:28px} button,select{font:13px 'Segoe UI',sans-serif;border:1px solid #d3dace;border-radius:8px;background:#fffdf9;color:#45604c;padding:10px 17px;cursor:pointer} .demo-note{margin-top:30px;color:#7c887a;font-size:12px;max-width:360px} .demo-note strong{font-weight:600;color:#566d57}.toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:20px;font-size:12px;color:#7b8878} .nightMode{background:#16221c;color:#e3ebe2}.nightMode nav,.nightMode .review,.nightMode button,.nightMode select{background:#202c27;color:#e3ebe2;border-color:#425044}
-    @media(max-width:600px){nav{padding:0 20px}.brand span{display:none}main{margin:26px auto}.review{padding:25px}.card-word{font-size:40px}}
-  </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spanish Helper · Anki preview</title>
+<link rel="icon" href="data:,">
+<style>
+:root{--fg:#020202;--fg-subtle:#737373;--fg-disabled:#858585;--fg-link:#1d4ed8;--canvas:#f5f5f5;--border:#c4c4c4;--border-subtle:#e4e4e4;--border-focus:#3b82f6;--button-bg:#fcfcfc;--button-gradient-start:#fff;--shadow:#c4c4c4;--border-radius:5px;--border-radius-large:15px;--accent-danger:#dc2626;--state-review:#16a34a;--state-learn:#dc2626}
+:root.night-mode{--fg:#fcfcfc;--fg-subtle:#aaa;--fg-disabled:#737373;--fg-link:#bfdbfe;--canvas:#2c2c2c;--border:#202020;--border-subtle:#252525;--button-bg:#404040;--button-gradient-start:#4a4a4a;--shadow:#141414;--accent-danger:#f87171;--state-review:#22c55e;--state-learn:#f87171}
+*{box-sizing:border-box}body{margin:0;background:var(--canvas);color:var(--fg);font:13px/1.5 "Segoe UI",system-ui,sans-serif}
+nav{height:42px;display:flex;justify-content:center;align-items:center;gap:26px;border-bottom:1px solid var(--border-subtle);font-weight:600}
+.review{position:fixed;inset:42px 0 68px;overflow:auto}
+#qa{margin:70px 32px;text-align:center;font:26px/1.7 Arial,sans-serif}
+h1{font:inherit;margin:0}hr{border:0;border-top:1px solid var(--border);margin:24px auto;max-width:600px}
+footer{position:fixed;bottom:0;height:68px;width:100%;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border-subtle);padding:12px;gap:10px}
+button,select{font:12px "Segoe UI",system-ui,sans-serif;color:var(--fg);background:var(--button-bg);border:1px solid var(--border-subtle);border-bottom-color:var(--shadow);border-radius:15px;padding:8px 12px;cursor:pointer}
+.tools{position:fixed;top:48px;right:14px;display:flex;gap:8px;align-items:center;color:var(--fg-subtle);font-size:11px}
+@media(max-width:540px){nav{gap:16px;font-size:11px}.tools{position:static;justify-content:center;margin:12px;flex-wrap:wrap}.review{inset:42px 0 68px}#qa{margin:55px 20px}footer{padding:8px}footer .extra{display:none}}
+</style>
 </head>
-<body>
-  <nav><div class="brand">Spanish Helper<span>UN POCO CADA DÍA</span></div><a href="/README.md" target="_blank">Guía del proyecto ↗</a></nav>
-  <main>
-    <div class="crumb">ESPAÑOL B1 &nbsp; / &nbsp; PRÁCTICA DE VOCABULARIO</div>
-    <section class="review" aria-label="Tarjeta de ejemplo">
-      <div class="progress"><span>Tu momento de español</span><span class="dots">● ● ● ○ ○</span></div>
-      <div id="qa"><h1 class="card-word" id="card-word">aprovechar</h1></div>
-      <p class="prompt">¿Recuerdas qué significa?</p>
-      <p id="translation" class="translation" hidden>eine Gelegenheit nutzen</p>
-    </section>
-    <div class="review-actions"><button id="reveal" type="button">Mostrar respuesta</button><button id="next" type="button">Siguiente tarjeta →</button></div>
-    <div class="toolbar"><label for="choose">Practicar otra palabra</label><select id="choose"><option>aprovechar</option><option>ahorrar</option><option>echar de menos</option><option>agotado</option><option>sin embargo</option><option>manzana</option></select><button id="theme" type="button">Cambiar tema</button></div>
-    <p class="demo-note"><strong>Vista previa del ayudante.</strong> Los dos botones funcionan con audio y pistas reales. En Anki, la palabra cambia automáticamente con cada tarjeta.</p>
-  </main>
-  <script src="/spanish_helper/web/overlay.js"></script>
-  <script>
-    let css='', token='', player, index=0;
-    const words=['aprovechar','ahorrar','echar de menos','agotado','sin embargo','manzana'];
-    const meanings=['eine Gelegenheit nutzen','sparen','vermissen','erschöpft','jedoch','Apfel'];
-    function mount(){ token=crypto.randomUUID(); window.SpanishHelper.mount({token,word:words[index]},css); }
-    fetch('/spanish_helper/web/overlay.css').then(r=>r.text()).then(value=>{css=value;mount();});
-    window.pycmd=async function(message){
-      const req=JSON.parse(message.slice('spanish-helper:'.length));
-      try {
-        const response=await fetch('/api/helper',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:req.action,word:req.selection||words[index]})});
-        const result=await response.json();
-        if(req.token!==token)return;
-        if(result.event==='audio'){if(player)player.pause();player=new Audio(result.url);await player.play();}
-        window.SpanishHelper.receive({...result,token:req.token});
-      }catch(error){window.SpanishHelper.receive({event:'error',token:req.token,action:req.action,message:'No se puede conectar con el servidor de vista previa.'});}
-    };
-    function change(){document.getElementById('card-word').textContent=words[index];document.getElementById('translation').hidden=true;document.getElementById('translation').textContent=meanings[index];document.getElementById('choose').value=words[index];document.getElementById('reveal').textContent='Mostrar respuesta';if(player)player.pause();mount();}
-    document.getElementById('next').onclick=()=>{index=(index+1)%words.length;change();};
-    document.getElementById('choose').onchange=e=>{index=words.indexOf(e.target.value);change();};
-    document.getElementById('reveal').onclick=e=>{const target=document.getElementById('translation');target.hidden=!target.hidden;e.target.textContent=target.hidden?'Mostrar respuesta':'Ocultar respuesta';};
-    document.getElementById('theme').onclick=()=>{document.body.classList.toggle('nightMode');mount();};
-  </script>
+<body class="fancy">
+<nav><span>Mazos</span><span>Añadir</span><span>Explorar</span><span>Estadísticas</span></nav>
+<div class="review" id="review">
+<div class="tools"><span>Vista previa</span><select id="choose" aria-label="Palabra"><option>aprovechar</option><option>ahorrar</option><option>echar de menos</option><option>agotado</option><option>sin embargo</option><option>manzana</option></select><button id="theme" type="button">Cambiar tema</button></div>
+<div id="qa"><h1 id="card-word">aprovechar</h1><div id="answer" hidden><hr><div id="translation">eine Gelegenheit nutzen</div></div></div>
+</div>
+<footer><button class="extra" type="button" disabled>Editar</button><button id="reveal" type="button">Mostrar respuesta</button><button id="next" type="button">Siguiente →</button></footer>
+<script src="/spanish_helper/web/overlay.js"></script>
+<script>
+let css='',token='',player,index=0,answerShown=false;
+const words=['aprovechar','ahorrar','echar de menos','agotado','sin embargo','manzana'];
+const meanings=['eine Gelegenheit nutzen','sparen','vermissen','erschöpft','jedoch','Apfel'];
+function mount(){
+  token=crypto.randomUUID();window.SpanishHelper.mount({token,word:words[index],answerShown},css);
+  // Anki puts its rating controls in a separate webview. Recreate that boundary.
+  const host=document.getElementById('spanish-helper');host.style.bottom='68px';
+  document.getElementById('review').append(document.getElementById('spanish-helper-space'));
+}
+fetch('/spanish_helper/web/overlay.css').then(r=>r.text()).then(value=>{css=value;mount();});
+window.pycmd=async function(message){
+  const req=JSON.parse(message.slice('spanish-helper:'.length));
+  try{
+    const response=await fetch('/api/helper',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:req.action,word:req.action==='check'?words[index]:req.selection||words[index],meaning:meanings[index]})});
+    const result=await response.json();
+    if(req.token!==token)return;
+    if(result.event==='audio'){if(player)player.pause();player=new Audio(result.url);await player.play();}
+    window.SpanishHelper.receive({...result,token:req.token});
+  }catch(error){window.SpanishHelper.receive({event:'error',token:req.token,action:req.action,message:'No se puede conectar con el servidor de vista previa.'});}
+};
+function change(){
+  answerShown=false;document.getElementById('card-word').textContent=words[index];
+  document.getElementById('answer').hidden=true;document.getElementById('translation').textContent=meanings[index];
+  document.getElementById('choose').value=words[index];document.getElementById('reveal').textContent='Mostrar respuesta';
+  if(player)player.pause();mount();
+}
+document.getElementById('next').onclick=()=>{index=(index+1)%words.length;change();};
+document.getElementById('choose').onchange=e=>{index=words.indexOf(e.target.value);change();};
+document.getElementById('reveal').onclick=e=>{answerShown=!answerShown;document.getElementById('answer').hidden=!answerShown;e.target.textContent=answerShown?'Ocultar respuesta':'Mostrar respuesta';mount();};
+document.getElementById('theme').onclick=()=>{document.body.classList.toggle('nightMode');document.documentElement.classList.toggle('night-mode');};
+</script>
 </body>
 </html>

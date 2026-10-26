@@ -3,6 +3,8 @@
 Use **Tools → Spanish Helper…** for the settings dialog.
 
 - `word_field`: exact name of the Spanish field. Empty detects the field visible on the card. Set this for decks with unusual layouts. Selection on the displayed card overrides it.
+- `translation_field`: exact name of the saved translation field. Empty detects common names such as `Translation`, `Traducción`, `Back`, `answer`, or `Übersetzung`. An explicitly configured missing field stays empty; it never falls back to a different field.
+- `check_model`: AI translation-check model; default `gpt-6-luna`. Requires an OpenAI API key and paid API access, separately from a ChatGPT subscription. Works even when `ai_hints` is off. Sends the saved word, translation and optional example only when you press **Comprobar** / **Alt+C** after revealing the answer. Does not use selected text or change the saved translation. Results are cached in memory for the profile session.
 - `example_field`, `hint_field`: optional fields containing your own Spanish examples and explanations. Common names such as `Ejemplo`, `Example`, `Pista`, and `Hint` work automatically.
 - `online_audio`: Google Translate pronunciation. The selected word is sent only when you click Pronunciar. With this off, an installed Spanish OS voice is required.
 - `online_dictionary`: Spanish examples from Wiktionary via Free Dictionary API, falling back to a definition from Spanish Wiktionary if no example is available. These original examples and definitions are not necessarily B1.

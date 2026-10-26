@@ -3,6 +3,8 @@
   "word_field": "",
   "example_field": "",
   "hint_field": "",
+  "translation_field": "",
+  "check_model": "gpt-6-luna",
   "online_audio": true,
   "online_dictionary": true,
   "ai_hints": false,
