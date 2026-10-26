@@ -65,6 +65,32 @@ class ContextTests(unittest.TestCase):
 
 
 class ServicesTests(unittest.TestCase):
+    def test_example_audio_keeps_entire_long_sentence_and_slow_setting(self):
+        sentence = ' '.join(['Para aprender español, escuchamos el ejemplo y repetimos la frase.'] * 6)
+        with patch.object(services, 'get_audio', side_effect=lambda text, cache, slow: Path(str(len(text)) + '.mp3')) as audio:
+            paths = services.get_example_audio(sentence, Path('audio-cache'), slow=True)
+        chunks = [call.args[0] for call in audio.call_args_list]
+        self.assertGreater(len(chunks), 1)
+        self.assertTrue(all(0 < len(chunk) <= 180 for chunk in chunks))
+        self.assertEqual(' '.join(chunks), sentence)
+        self.assertEqual(len(paths), len(chunks))
+        self.assertTrue(all(call.args[2] is True for call in audio.call_args_list))
+
+    def test_example_audio_rejects_blank_or_oversized_text_without_download(self):
+        with patch.object(services, 'get_audio') as audio:
+            for text in ('', '   ', 'x' * 1501):
+                with self.subTest(text=text[:10]), self.assertRaises(services.HelperError):
+                    services.get_example_audio(text, Path('audio-cache'))
+            audio.assert_not_called()
+
+    def test_example_audio_uses_plain_text_and_existing_cache(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.object(services, 'request_bytes', return_value=(b'ID3' + b'x' * 400, 'audio/mpeg')) as download:
+                first = services.get_example_audio('<b>¡Qué</b> bonito es este ejemplo!', Path(directory))
+                second = services.get_example_audio('¡Qué bonito es este ejemplo!', Path(directory))
+        self.assertEqual(first, second)
+        self.assertEqual(download.call_count, 1)
+
     def test_dictionary_shows_spanish_example_instead_of_english_definition(self):
         response = {'entries': [{'language': {'code': 'es'}, 'senses': [{'definition': 'to save money', 'examples': ['¿Cuánto dinero hemos ahorrado este mes?']}]}]}
         with patch.object(services, 'request_bytes', return_value=(json.dumps(response).encode(), 'application/json')):

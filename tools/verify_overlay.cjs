@@ -79,7 +79,35 @@ const nativeCSS = ankiStyle ? fs.readFileSync(ankiStyle, 'utf8') : '';
     await page.evaluate(() => window.getSelection().removeAllRanges());
     await page.getByRole('button',{name:'Pronunciar',exact:true}).click();
     assert.equal(await page.evaluate(() => window.requests.at(-1).selection), '');
+    await receive({event:'audio',token:'next',action:'pronounce'});
+    await page.getByRole('button',{name:'Pista',exact:true}).click();
+    await receive({event:'hint',token:'next',example:'Cada semana intento ahorrar un poco para mis próximas vacaciones.',explanation:'Guardar dinero para usarlo después.',source:'Prueba local'});
+    const exampleButton = page.getByRole('button',{name:'Escuchar ejemplo',exact:true});
+    assert.equal(await exampleButton.isVisible(), true);
+    // Text selections in the card must not override the example sentence.
+    await page.locator('#qa h1').evaluate(element => {
+      const range=document.createRange();range.selectNodeContents(element);
+      const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);
+    });
+    await exampleButton.click();
+    assert.equal(await exampleButton.isDisabled(),true);
+    assert.equal(await page.getByRole('button',{name:'Pronunciar',exact:true}).isDisabled(),true);
+    assert.equal(await page.evaluate(() => window.requests.at(-1).action),'example_audio');
+    assert.equal(await page.evaluate(() => window.requests.at(-1).selection),'');
+    await receive({event:'error',token:'next',action:'example_audio',message:'No hay conexión con el servicio.'});
+    assert.equal(await exampleButton.isEnabled(),true);
+    await exampleButton.click();
+    await receive({event:'audio',token:'old',action:'example_audio'});
+    assert.equal(await exampleButton.isDisabled(),true);
+    await receive({event:'audio',token:'next',action:'example_audio'});
+    assert.equal(await exampleButton.isEnabled(),true);
+    await page.evaluate(() => window.getSelection().removeAllRanges());
+    await page.screenshot({path:path.join(output,'anki-hint-example-audio.png')});
+    await receive({event:'hint',token:'next',example:'',explanation:'Una definición sin ejemplo.',source:'Prueba local'});
+    assert.equal(await exampleButton.isVisible(), false);
+    await mount('new-card');
+    assert.equal(await exampleButton.isVisible(), false);
     assert.deepEqual(errors, []);
-    console.log('PASS: native light/dark colors, compact responsive toolbar, answer gate, selected-text isolation, stale replies, cached toggling, keyboard controls, error recovery and next-card reset');
+    console.log('PASS: native themes, responsive toolbar, translation checks and example speaker: visibility, selected-text isolation, busy state, errors, stale replies and card reset');
   } finally { await browser.close(); }
 })().catch(error => {console.error(error);process.exitCode=1;});

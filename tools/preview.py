@@ -53,6 +53,10 @@ class Handler(SimpleHTTPRequestHandler):
             if request['action'] == 'pronounce':
                 path = services.get_audio(word, ROOT / 'output/preview-audio')
                 result = {'event': 'audio', 'url': '/' + path.relative_to(ROOT).as_posix(), 'word': word}
+            elif request['action'] == 'example_audio':
+                paths = services.get_example_audio(str(request.get('example', '')), ROOT / 'output/preview-audio')
+                result = {'event': 'audio', 'action': 'example_audio',
+                          'urls': ['/' + path.relative_to(ROOT).as_posix() for path in paths]}
             elif request['action'] == 'hint':
                 context = core.CardContext(word)
                 result = {'event': 'hint', 'word': word, **(core.local_hint(context, vocabulary, deck_hints) or services.dictionary_hint(word))}

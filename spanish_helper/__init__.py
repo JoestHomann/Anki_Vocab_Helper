@@ -12,10 +12,10 @@ from aqt.reviewer import Reviewer
 from aqt.qt import (QAction, QCheckBox, QDialog, QDialogButtonBox, QFormLayout,
                     QLabel, QLineEdit, QVBoxLayout)
 from aqt.sound import av_player
-from anki.sound import TTSTag
+from anki.sound import SoundOrVideoTag, TTSTag
 
 from .core import extract_context, is_current, local_hint, plain_text
-from .services import HelperError, ai_hint, check_translation, dictionary_hint, get_audio
+from .services import HelperError, ai_hint, check_translation, dictionary_hint, get_audio, get_example_audio
 
 ROOT = Path(__file__).parent
 VOCABULARY = json.loads((ROOT / 'vocabulary.json').read_text(encoding='utf-8'))
@@ -23,7 +23,7 @@ DECK_HINTS = json.loads((ROOT / 'deck_hints.json').read_text(encoding='utf-8')) 
 DEFAULTS = json.loads((ROOT / 'config.json').read_text(encoding='utf-8'))
 CSS = (ROOT / 'web' / 'overlay.css').read_text(encoding='utf-8')
 JS = (ROOT / 'web' / 'overlay.js').read_text(encoding='utf-8')
-state = {'token': '', 'context': None, 'key': '', 'busy': set()}
+state = {'token': '', 'context': None, 'key': '', 'busy': set(), 'hint_example': ''}
 hint_cache = {}
 check_cache = {}
 
@@ -41,6 +41,7 @@ def send(event, **values):
 def show_card(card):
     state['token'] = uuid4().hex
     state['context'] = None
+    state['hint_example'] = ''
     state['busy'].clear()
     options = config()
     web = mw.reviewer.web
@@ -71,7 +72,9 @@ def handle_message(handled, message, context):
         token, action = request['token'], request['action']
         if not is_current(token, state['token'], mw.state == 'review') or state['context'] is None:
             return (True, None)
-        if action not in ('pronounce', 'hint', 'check') or action in state['busy']:
+        if action not in ('pronounce', 'example_audio', 'hint', 'check') or action in state['busy']:
+            return (True, None)
+        if action in ('pronounce', 'example_audio') and state['busy'].intersection(('pronounce', 'example_audio')):
             return (True, None)
         if action == 'check' and getattr(mw.reviewer, 'state', '') != 'answer':
             send('error', action=action, message='Muestra primero la respuesta para comprobar tu traducción sin adelantarla.')
@@ -79,19 +82,27 @@ def handle_message(handled, message, context):
         selected = plain_text(str(request.get('selection', '')))
         # Only allow vocabulary actually present on the displayed card.
         card_context = state['context']
-        if action != 'check' and selected and len(selected) <= 180 and request.get('selectionOnCard') is True:
+        if action not in ('check', 'example_audio') and selected and len(selected) <= 180 and request.get('selectionOnCard') is True:
             card_context = replace(card_context, word=selected, example='', explanation='', meaning='')
+        speech_text = state['hint_example'] if action == 'example_audio' else card_context.word
+        if action == 'example_audio' and not speech_text:
+            raise HelperError('Muestra primero una pista con un ejemplo para escucharlo.')
+        if action == 'example_audio' and len(speech_text) > 1500:
+            raise HelperError('Este ejemplo es demasiado largo para escucharlo (máximo 1500 caracteres).')
         if not card_context.word:
             send('error', action=action, message='Selecciona una palabra de la tarjeta o configura el campo en Herramientas → Spanish Helper.')
             return (True, None)
         options = config()
-        if action == 'pronounce' and not options['online_audio']:
-            tag = TTSTag(card_context.word, 'es_ES', [], 0.8 if options['slow_audio'] else 1.0, [])
+        if action in ('pronounce', 'example_audio') and not options['online_audio']:
+            tag = TTSTag(speech_text, 'es_ES', [], 0.8 if options['slow_audio'] else 1.0, [])
             if not any(player.rank_for_tag(tag) is not None for player in av_player.players):
                 raise HelperError('No hay una voz española instalada. Activa el audio por Internet en Herramientas → Spanish Helper o instala una voz española de Windows.')
             av_player.play_tags([tag])
-            send('audio', word=card_context.word)
+            send('audio', action=action, word=speech_text)
             return (True, None)
+        if action == 'hint':
+            state['hint_example'] = ''
+            state['busy'].discard('example_audio')
         state['busy'].add(action)
         key = state['key'] or os.environ.get('OPENAI_API_KEY', '')
         cache_key = (card_context, options['ai_hints'], options['model'])
@@ -104,6 +115,8 @@ def handle_message(handled, message, context):
                 return check_translation(card_context, key, options['check_model'])
             if action == 'pronounce':
                 return get_audio(card_context.word, ROOT / 'user_files' / 'audio', options['slow_audio'])
+            if action == 'example_audio':
+                return get_example_audio(speech_text, ROOT / 'user_files' / 'audio', options['slow_audio'])
             saved = local_hint(card_context, VOCABULARY, DECK_HINTS)
             if saved:
                 return saved
@@ -117,20 +130,27 @@ def handle_message(handled, message, context):
                 return dictionary_hint(card_context.word)
             raise HelperError('No hay una pista local. Añade un campo «Ejemplo» o activa el diccionario o la IA en Herramientas → Spanish Helper.')
 
+        def still_current():
+            return is_current(token, state['token'], mw.state == 'review') and (
+                action != 'example_audio' or state['hint_example'] == speech_text)
+
         def done(future):
             try:
                 result = future.result()
             except Exception as error:
-                if is_current(token, state['token'], mw.state == 'review'):
+                if still_current():
                     state['busy'].discard(action)
                     send('error', action=action, message=str(error) if isinstance(error, HelperError) else 'No se puede completar la acción. Vuelve a intentarlo.')
                 return
-            if not is_current(token, state['token'], mw.state == 'review'):
+            if not still_current():
                 return
             state['busy'].discard(action)
             if action == 'pronounce':
                 av_player.play_file(str(result))
-                send('audio', word=card_context.word)
+                send('audio', action=action, word=card_context.word)
+            elif action == 'example_audio':
+                av_player.play_tags([SoundOrVideoTag(str(path)) for path in result])
+                send('audio', action=action, word=speech_text)
             elif action == 'check':
                 if len(check_cache) >= 250:
                     check_cache.clear()
@@ -140,6 +160,7 @@ def handle_message(handled, message, context):
                 if len(hint_cache) > 250:
                     hint_cache.clear()
                 hint_cache[cache_key] = result
+                state['hint_example'] = plain_text(result.get('example', ''))
                 send('hint', word=card_context.word, **result)
 
         mw.taskman.run_in_background(work, done)
@@ -154,6 +175,7 @@ def state_changed(new_state, old_state):
     if new_state != 'review':
         state['token'] = ''
         state['context'] = None
+        state['hint_example'] = ''
         state['busy'].clear()
 
 

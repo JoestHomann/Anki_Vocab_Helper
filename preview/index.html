@@ -40,10 +40,19 @@ fetch('/spanish_helper/web/overlay.css').then(r=>r.text()).then(value=>{css=valu
 window.pycmd=async function(message){
   const req=JSON.parse(message.slice('spanish-helper:'.length));
   try{
-    const response=await fetch('/api/helper',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:req.action,word:req.action==='check'?words[index]:req.selection||words[index],meaning:meanings[index]})});
+    const example=document.getElementById('spanish-helper').shadowRoot.getElementById('example').textContent;
+    const response=await fetch('/api/helper',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:req.action,word:req.action==='check'?words[index]:req.selection||words[index],meaning:meanings[index],example:req.action==='example_audio'?example:''})});
     const result=await response.json();
     if(req.token!==token)return;
-    if(result.event==='audio'){if(player)player.pause();player=new Audio(result.url);await player.play();}
+    if(result.event==='audio'){
+      if(player)player.pause();
+      for(const url of result.urls||[result.url]){
+        if(req.token!==token)return;
+        player=new Audio(url);
+        const finished=new Promise((resolve,reject)=>{player.onended=resolve;player.onerror=reject;});
+        await player.play();await finished;
+      }
+    }
     window.SpanishHelper.receive({...result,token:req.token});
   }catch(error){window.SpanishHelper.receive({event:'error',token:req.token,action:req.action,message:'No se puede conectar con el servidor de vista previa.'});}
 };

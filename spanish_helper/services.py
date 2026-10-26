@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import textwrap
 from pathlib import Path
 from urllib.request import Request, urlopen
 from urllib.parse import quote, urlencode
@@ -60,6 +61,15 @@ def get_audio(word: str, cache: Path, slow=False) -> Path:
         temporary = handle.name
     os.replace(temporary, path)
     return path
+
+
+def get_example_audio(example: str, cache: Path, slow=False) -> list[Path]:
+    """Speak the full hint, using short cached TTS segments without truncation."""
+    text = plain_text(example)
+    if not text or len(text) > 1500:
+        raise HelperError('El ejemplo debe contener entre 1 y 1500 caracteres para escucharlo.')
+    chunks = textwrap.wrap(text, width=180, break_long_words=True, break_on_hyphens=False)
+    return [get_audio(chunk, cache, slow) for chunk in chunks]
 
 
 def dictionary_hint(word: str) -> dict:

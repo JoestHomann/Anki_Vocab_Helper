@@ -1,7 +1,7 @@
 (() => {
   if (window.SpanishHelper) return;
   let host, root, data, busy = new Set(), activePanel = '', lastSelection = '';
-  let sizeObserver, themeObserver, checkResult = null;
+  let sizeObserver, themeObserver, checkResult = null, hintExample = '';
   const icon = paths => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
   const speaker = icon('<path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/>');
   const bulb = icon('<path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 2H9s0-1-1-2Z"/>');
@@ -17,8 +17,9 @@
     } else lastSelection = '';
   }
   function sync() {
-    for (const name of ['pronounce', 'hint', 'check']) {
-      el(name).disabled = busy.has(name) || (name === 'check' && !data.answerShown);
+    const audioBusy = busy.has('pronounce') || busy.has('example_audio');
+    for (const name of ['pronounce', 'example_audio', 'hint', 'check']) {
+      el(name).disabled = busy.has(name) || (['pronounce', 'example_audio'].includes(name) && audioBusy) || (name === 'check' && !data.answerShown);
       el(name).setAttribute('aria-busy', String(busy.has(name)));
     }
     for (const name of ['hint', 'check']) {
@@ -31,17 +32,23 @@
   }
   function action(name) {
     if (busy.has(name) || (name === 'check' && !data.answerShown)) return;
-    if (name !== 'pronounce' && activePanel === name) { activePanel = ''; sync(); return; }
+    if (['pronounce', 'example_audio'].includes(name) && (busy.has('pronounce') || busy.has('example_audio'))) return;
+    if (name === 'example_audio' && !hintExample) return;
+    if (['hint', 'check'].includes(name) && activePanel === name) { activePanel = ''; sync(); return; }
     // Reopening a completed check does not perform another paid request.
     if (name === 'check' && checkResult) {
       activePanel = name; el('status').textContent = ''; sync(); return;
     }
-    if (name !== 'check') captureSelection();
+    if (!['check', 'example_audio'].includes(name)) captureSelection();
+    if (name === 'hint') {
+      hintExample = ''; busy.delete('example_audio'); el('example-row').hidden = true;
+    }
     busy.add(name);
-    el('status').textContent = {hint: 'Buscando una pista…', pronounce: 'Preparando la pronunciación…', check: 'Revisando tu traducción…'}[name];
+    el('status').textContent = {hint: 'Buscando una pista…', pronounce: 'Preparando la pronunciación…', example_audio: 'Preparando el audio del ejemplo…', check: 'Revisando tu traducción…'}[name];
     el('status').dataset.error = 'false';
     sync();
-    const request = {token: data.token, action: name, selection: name === 'check' ? '' : lastSelection, selectionOnCard: name !== 'check' && !!lastSelection};
+    const useSelection = !['check', 'example_audio'].includes(name);
+    const request = {token: data.token, action: name, selection: useSelection ? lastSelection : '', selectionOnCard: useSelection && !!lastSelection};
     if (typeof window.pycmd === 'function') window.pycmd('spanish-helper:' + JSON.stringify(request));
     else receive({event: 'error', token: data.token, action: name, message: 'Abre esta tarjeta en Anki para usar el ayudante.'});
   }
@@ -54,7 +61,7 @@
     host = null;
   }
   function mount(next, css) {
-    destroy(); data = next; busy.clear(); activePanel = ''; lastSelection = ''; checkResult = null;
+    destroy(); data = next; busy.clear(); activePanel = ''; lastSelection = ''; checkResult = null; hintExample = '';
     host = document.createElement('div'); host.id = 'spanish-helper';
     root = host.attachShadow({mode: 'open'});
     const style = document.createElement('style'); style.textContent = css; root.append(style);
@@ -62,7 +69,8 @@
     panel.className = 'helper'; panel.setAttribute('aria-label', 'Ayudante de español'); panel.lang = 'es';
     panel.innerHTML = '<div id="hint-panel" class="result" role="region" aria-labelledby="hint-title" hidden>' +
       '<div class="result-header"><span class="result-title" id="hint-title">Pista</span><button class="close" type="button" aria-label="Cerrar pista">' + close + '</button></div>' +
-      '<p id="example"></p><p id="explanation"></p><a class="source" id="source" target="_blank" rel="noopener noreferrer"></a></div>' +
+      '<div class="example-row" id="example-row" hidden><p id="example"></p><button type="button" class="example-audio" id="example_audio" aria-label="Escuchar ejemplo" title="Escuchar el ejemplo completo">' + speaker + '</button></div>' +
+      '<p id="explanation"></p><a class="source" id="source" target="_blank" rel="noopener noreferrer"></a></div>' +
       '<div id="check-panel" class="result" role="region" aria-labelledby="check-verdict" hidden>' +
       '<div class="result-header"><span class="result-title verdict" id="check-verdict"></span><button class="close" type="button" aria-label="Cerrar comprobación">' + close + '</button></div>' +
       '<div class="saved"><span class="field-label">Tu traducción guardada</span><span id="check-saved"></span></div><p id="check-explanation"></p>' +
@@ -75,7 +83,7 @@
       '<div id="status" role="status" aria-live="polite" aria-atomic="true"></div>';
     root.append(panel); document.body.append(host);
     el('check').title = next.answerShown ? 'Revisar tu traducción guardada con IA (Alt+C)' : 'Muestra primero la respuesta para comprobar tu traducción';
-    for (const name of ['pronounce', 'hint', 'check']) {
+    for (const name of ['pronounce', 'example_audio', 'hint', 'check']) {
       el(name).addEventListener('pointerdown', captureSelection);
       el(name).addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); action(name); });
     }
@@ -100,8 +108,9 @@
     if (!host || message.token !== data.token) return;
     if (message.event === 'hint') {
       busy.delete('hint'); activePanel = 'hint';
+      hintExample = (message.example || '').trim();
       el('hint-title').textContent = message.example ? 'En contexto' : 'Significado';
-      el('example').textContent = message.example || ''; el('example').hidden = !message.example;
+      el('example').textContent = hintExample; el('example-row').hidden = !hintExample;
       el('explanation').textContent = message.explanation || ''; el('explanation').hidden = !message.explanation;
       el('source').textContent = message.source || '';
       if (message.url && (message.url.startsWith('https://en.wiktionary.org/') || message.url.startsWith('https://es.wiktionary.org/'))) el('source').href = message.url;
@@ -118,7 +127,7 @@
       el('check-source').textContent = message.source || '';
       el('status').textContent = ''; el('status').dataset.error = 'false';
     } else if (message.event === 'audio') {
-      busy.delete('pronounce'); el('status').textContent = ''; el('status').dataset.error = 'false';
+      busy.delete(message.action || 'pronounce'); el('status').textContent = ''; el('status').dataset.error = 'false';
     } else if (message.event === 'error') {
       busy.delete(message.action); el('status').textContent = message.message; el('status').dataset.error = 'true';
     }

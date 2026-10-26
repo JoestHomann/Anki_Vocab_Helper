@@ -95,6 +95,46 @@ with patch.object(addon, 'get_audio', return_value=ROOT / 'output/test.mp3'), pa
     assert play.call_count == 1
 print('PASS: old-card audio is ignored; current-card audio reaches Anki player')
 
+# The example speaker reads the delivered hint, never the selected/card word.
+addon.show_card(card())
+before = len(jobs)
+click('example_audio')
+assert len(jobs) == before and 'Muestra primero' in scripts[-1]
+click('hint')
+finish()
+example = addon.state['hint_example']
+assert example and example != 'ahorrar'
+audio_paths = [ROOT / 'output/first.mp3', ROOT / 'output/second.mp3']
+with patch.object(addon, 'get_example_audio', return_value=audio_paths) as get_example, patch.object(addon.av_player, 'play_tags') as play:
+    message = 'spanish-helper:' + json.dumps({'token': addon.state['token'], 'action': 'example_audio', 'selection': 'wrong selection', 'selectionOnCard': True, 'text': 'untrusted text'})
+    addon.handle_message((False, None), message, window.reviewer)
+    click('example_audio')
+    assert len(jobs) == 1
+    finish()
+    assert get_example.call_args.args[0] == example
+    assert [tag.filename for tag in play.call_args.args[0]] == [str(path) for path in audio_paths]
+    assert 'example_audio' in scripts[-1] and 'example_audio' not in addon.state['busy']
+    click('example_audio')
+    addon.show_card(card('otro'))
+    finish()
+    assert play.call_count == 1
+    # Replacing a hint on the same card also invalidates old example audio.
+    addon.state['hint_example'] = example
+    click('example_audio')
+    click('hint')
+    finish()
+    assert play.call_count == 1
+    finish()
+options['online_audio'] = False
+options['slow_audio'] = True
+with patch.object(addon.av_player, 'players', [SimpleNamespace(rank_for_tag=lambda tag: 1)]), patch.object(addon.av_player, 'play_tags') as play:
+    click('example_audio')
+    tag = play.call_args.args[0][0]
+    assert tag.field_text == addon.state['hint_example'] and tag.speed == 0.8
+options['online_audio'] = True
+options['slow_audio'] = False
+print('PASS: full hint example audio, trusted text, ordered segments, offline voice, duplicate clicks and stale replies')
+
 before = len(jobs)
 addon.handle_message((False, None), 'spanish-helper:{"token":"old","action":"hint"}', window.reviewer)
 assert len(jobs) == before

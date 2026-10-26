@@ -10,7 +10,9 @@ Use **Tools → Spanish Helper…** for the settings dialog.
 - `online_dictionary`: Spanish examples from Wiktionary via Free Dictionary API, falling back to a definition from Spanish Wiktionary if no example is available. These original examples and definitions are not necessarily B1.
 - `ai_hints`: generate new B1 Spanish examples and explanations when no card/local hint exists. Requires an OpenAI API key entered for the current session or the `OPENAI_API_KEY` environment variable. API usage is billed separately.
 - `model`: configurable OpenAI Responses API model; default `gpt-4.1-mini`.
-- `slow_audio`: slower pronunciation.
+- `slow_audio`: slower pronunciation for both the card word and the hint example speaker.
+
+When a hint contains an example, **Escuchar ejemplo** (the small speaker beside the sentence) reads that complete example, not a text selection or the card word. It uses `online_audio` and `slow_audio`; no AI key is needed. Long examples are played as ordered cached audio segments, up to 1,500 characters. With `online_audio` off, an installed Spanish OS voice reads the sentence instead.
 
 No notes, card templates, scheduling, or review history are changed. Cached MP3s are stored in `user_files/audio`. The session key is cleared when a profile closes.
 

@@ -3,7 +3,7 @@
 A compact toolbar in the Anki desktop review screen. It uses Anki's own light/dark theme colors and button shapes, above the separate answer/rating bar:
 
 - **Pronunciar** plays the current Spanish word or a selected phrase. **Alt+P** also works.
-- **Pista** shows an example or explanation. **Alt+H** shows/hides the hint.
+- **Pista** shows an example or explanation. **Alt+H** shows/hides the hint. When an example is available, the small speaker button beside it (**Escuchar ejemplo**) reads the whole sentence using your pronunciation and slow-audio settings. It ignores selected text and does not regenerate the hint or require an AI key. Definition-only hints have no example speaker.
 - **Comprobar** checks your saved Spanish word–translation pair with AI after you reveal the answer. **Alt+C** opens/closes the result. A small model (`gpt-6-luna` by default) reports a likely match, a nuance, a possible error, or uncertainty, with a suggested translation when appropriate. It checks the full saved pair, regardless of any selected text, and never edits your card.
 
 The interface and prepared examples use Spanish appropriate for a B1 learner. Saved dictionary hints have variable difficulty and are labelled accordingly. It follows both sides of the current card, clears hints on the next card, and ignores delayed responses for old cards. Notes, templates, scheduling and review history are never edited.
@@ -58,6 +58,8 @@ If a word has no local hint, dictionary example, or Spanish definition, the help
 ## Pronunciation and privacy
 
 Online pronunciation uses Google's public Translate TTS endpoint and caches MP3s locally in the add-on's `user_files/audio` folder. Internet access is required on the first request for each word. This public endpoint has no service guarantee and can be rate-limited. An error is shown with a retry path if it is unavailable. Turn off online pronunciation to use an installed Spanish OS voice through Anki instead; Windows must actually have a Spanish voice installed.
+
+The example speaker uses the same audio cache and voice settings. Examples longer than 180 characters are downloaded in short segments and queued in order, so the sentence is not cut off. It supports examples up to 1,500 characters. Audio responses for a previous card or replaced hint are ignored; errors allow another attempt.
 
 Only clicking a button sends text to a service. Google receives the chosen word/phrase; the dictionary receives a search word. For AI hints, OpenAI receives the chosen word and a short translation field to help select its meaning. For translation checks, it receives the saved pair and optional example. Both use response storage disabled in the request. No full deck, collection, API key or note HTML is sent to the preview server. AI results may need correction, especially for ambiguous vocabulary.
 

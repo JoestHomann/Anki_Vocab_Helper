@@ -39,6 +39,9 @@ kbd { margin-left: 3px; font: 10px/1.4 "Segoe UI", system-ui, sans-serif; color:
 .close { min-height: 24px; width: 24px; padding: 2px; background: transparent; border-color: transparent; border-radius: 5px; }
 p { margin: 7px 0; overflow-wrap: anywhere; }
 #example { font-size: 15px; line-height: 1.55; }
+.example-row { display: flex; align-items: flex-start; gap: 10px; margin: 7px 0; }
+.example-row #example { flex: 1; min-width: 0; margin: 0; }
+.example-audio { flex: 0 0 auto; width: 28px; min-height: 28px; padding: 5px; border-radius: var(--sh-radius); }
 #explanation, #check-explanation { font-size: 13px; }
 .source, .note, .field-label { color: var(--sh-muted); font-size: 11px; }
 .source { display: block; margin-top: 9px; text-decoration: none; }
