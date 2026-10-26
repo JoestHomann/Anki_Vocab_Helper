@@ -15,6 +15,8 @@ When a hint contains an example, **Escuchar ejemplo** (the small speaker beside 
 
 No notes, card templates, scheduling, or review history are changed. Cached MP3s are stored in `user_files/audio`. Closing a profile clears in-memory results. OAuth secrets are never stored in configuration or synced with Anki.
 
+**Ask AI** / **Alt+A** opens a card chat with suggested questions about meaning, translation, grammar, tenses/conjugation, and examples. You can type custom questions and follow-ups; Enter sends and Shift+Enter inserts a new line. Chat uses the same `chatgpt_model` and subscription. Opening it makes no AI request. Before revealing the answer, only the word is shared; after revealing it, the saved translation and example are included. Questions are limited to 1,500 characters. The six most recent exchanges provide context for follow-ups. Chat is kept only in memory and clears when the card/side changes or the profile closes.
+
 The API-key route has been removed. Legacy provider, API-model, and remember-key options are ignored and dropped when you save settings. This version never reads stored API keys or environment keys.
 
 The bundled `deck_hints.json` has offline hints for all 2,480 vocabulary cards audited across the 12 Spanish vocabulary units on 19 October 2026. Prepared examples are B1; saved dictionary wording is labelled as variable difficulty. These existing-card hints do not require the online dictionary or an AI key. New cards may still need a lookup. Known `question`/`answer` field names are recognized automatically, and distinct meanings of the same headword are kept separate.

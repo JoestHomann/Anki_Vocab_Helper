@@ -31,7 +31,7 @@ let css='',token='',player,index=0,answerShown=false;
 const words=['aprovechar','ahorrar','echar de menos','agotado','sin embargo','manzana'];
 const meanings=['eine Gelegenheit nutzen','sparen','vermissen','erschöpft','jedoch','Apfel'];
 function mount(){
-  token=crypto.randomUUID();window.SpanishHelper.mount({token,word:words[index],answerShown},css);
+  token=crypto.randomUUID();window.SpanishHelper.mount({token,word:words[index],meaning:answerShown?meanings[index]:'',answerShown},css);
   // Anki puts its rating controls in a separate webview. Recreate that boundary.
   const host=document.getElementById('spanish-helper');host.style.bottom='68px';
   document.getElementById('review').append(document.getElementById('spanish-helper-space'));

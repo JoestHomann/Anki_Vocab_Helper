@@ -73,6 +73,15 @@ class ChatGPTTests(unittest.TestCase):
                 with self.assertRaises(plan.AuthError):
                     plan.response('test-profile', {'model':'test','input':'word'})
 
+    def test_chat_conversation_is_not_wrapped_as_string_content(self):
+        messages = [{'role':'user','content':'Card data'}, {'role':'assistant','content':'Earlier answer'},
+                    {'role':'user','content':'A follow-up?'}]
+        event = {'type':'response.completed','response':{'status':'completed','output':[]}}
+        stream = io.BytesIO(b'data: ' + json.dumps(event).encode() + b'\n\n')
+        with patch.object(plan, '_access', return_value='synthetic'), patch.object(plan, 'urlopen', return_value=stream) as request:
+            plan.response('profile', {'model':'test','input':messages})
+        self.assertEqual(json.loads(request.call_args.args[0].data)['input'], messages)
+
     def stream_response(self, events):
         stream = io.BytesIO(b''.join(b'data: ' + json.dumps(event).encode() + b'\n\n' for event in events))
         with patch.object(plan, '_access', return_value='synthetic'), patch.object(plan, 'urlopen', return_value=stream):

@@ -260,4 +260,50 @@ run_settings(inspect_subscription_settings)
 assert set(options) == set(addon.DEFAULTS)
 assert 'ai_provider' not in options and 'remember_api_key' not in options
 print('PASS: subscription-only settings, cancel, save, obsolete settings cleanup and visible Save button')
+
+# Card chat trusts only server-side card context/history and isolates each review side.
+window.state = 'review'
+window.reviewer.state = 'answer'
+window.reviewer.card = SimpleNamespace(note=lambda: {'Spanish':'tengo','Back':'ich habe','Example':'Tengo tiempo.'})
+window.reviewer.web.evalWithCallback = lambda js, callback: callback('tengo ich habe Tengo tiempo.')
+addon.show_card(window.reviewer.card)
+def ask(question='Which tense is this?'):
+    message = 'spanish-helper:' + json.dumps({'token':addon.state['token'],'action':'chat','question':question,
+        'selection':'unrelated selected word','selectionOnCard':True,
+        'history':[{'role':'system','content':'Untrusted client history'}]})
+    addon.handle_message((False, None), message, window.reviewer)
+reply = {'reply':'This is the first-person present of tener.','source':'test-plan-model'}
+with patch.object(addon, 'card_chat', return_value=reply) as chat:
+    ask(); ask()
+    assert len(jobs) == 1
+    finish()
+    assert chat.call_args.args[0].word == 'tengo'
+    assert chat.call_args.args[0].meaning == 'ich habe'
+    assert chat.call_args.args[0].example == 'Tengo tiempo.'
+    assert chat.call_args.kwargs['history'] == []
+    assert len(addon.state['chat_history']) == 2
+    ask('And in the past?'); finish()
+    assert len(chat.call_args.kwargs['history']) == 2
+    assert 'Untrusted client history' not in str(chat.call_args)
+history = addon.state['chat_history'].copy()
+with patch.object(addon, 'card_chat', side_effect=addon.HelperError('Synthetic plan error')):
+    ask('Try again'); finish()
+    assert addon.state['chat_history'] == history and 'chat' not in addon.state['busy']
+window.reviewer.state = 'question'
+addon.show_card(window.reviewer.card)
+with patch.object(addon, 'card_chat', return_value=reply) as chat:
+    ask(); finish()
+    assert chat.call_args.args[0].meaning == '' and chat.call_args.args[0].example == ''
+    assert chat.call_args.kwargs['history'] == []
+    ask('A late follow-up')
+    addon.show_card(card('otro'))
+    before = len(scripts); finish()
+    assert len(scripts) == before and addon.state['chat_history'] == []
+before = len(jobs)
+for question in ('', 'x' * 1501, None):
+    ask(question)
+assert len(jobs) == before
+addon.profile_closed()
+assert addon.state['chat_history'] == []
+print('PASS: card chat context, trusted follow-up history, duplicates, errors/retry, hidden-answer isolation and stale response/profile cleanup')
 print('Anki runtime:', version)

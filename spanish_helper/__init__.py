@@ -16,7 +16,7 @@ from anki.sound import SoundOrVideoTag, TTSTag
 
 from .core import extract_context, is_current, local_hint, plain_text
 from . import chatgpt
-from .services import HelperError, ai_hint, check_translation, dictionary_hint, get_audio, get_example_audio
+from .services import HelperError, ai_hint, card_chat, check_translation, dictionary_hint, get_audio, get_example_audio
 
 ROOT = Path(__file__).parent
 VOCABULARY = json.loads((ROOT / 'vocabulary.json').read_text(encoding='utf-8'))
@@ -24,7 +24,7 @@ DECK_HINTS = json.loads((ROOT / 'deck_hints.json').read_text(encoding='utf-8')) 
 DEFAULTS = json.loads((ROOT / 'config.json').read_text(encoding='utf-8'))
 CSS = (ROOT / 'web' / 'overlay.css').read_text(encoding='utf-8')
 JS = (ROOT / 'web' / 'overlay.js').read_text(encoding='utf-8')
-state = {'token': '', 'context': None, 'busy': set(), 'hint_example': ''}
+state = {'token': '', 'context': None, 'busy': set(), 'hint_example': '', 'chat_history': []}
 hint_cache = {}
 check_cache = {}
 
@@ -41,14 +41,14 @@ def send(event, **values):
         mw.reviewer.web.eval('window.SpanishHelper && window.SpanishHelper.receive(' + payload + ');')
 
 
-def ai_request(function, context, options):
+def ai_request(function, context, options, **arguments):
     profile = mw.pm.profileFolder()
     try:
         model = options['chatgpt_model']
         if not model:
             choices = chatgpt.models(profile)
             model = next((item['slug'] for item in choices if 'luna' in item['slug']), choices[0]['slug'])
-        result = function(context, model, requester=lambda payload: chatgpt.response(profile, payload))
+        result = function(context, model, requester=lambda payload: chatgpt.response(profile, payload), **arguments)
         result['source'] = result.get('source', '') + ' · Using ChatGPT plan'
         return result
     except chatgpt.AuthError as error:
@@ -59,6 +59,7 @@ def show_card(card):
     state['token'] = uuid4().hex
     state['context'] = None
     state['hint_example'] = ''
+    state['chat_history'] = []
     state['busy'].clear()
     options = config()
     web = mw.reviewer.web
@@ -74,9 +75,11 @@ def show_card(card):
             return
         context = extract_context(fields, str(text or ''), options)
         state['context'] = context
+        answer_shown = getattr(mw.reviewer, 'state', '') == 'answer'
         payload = json.dumps({'token': token, 'word': context.word,
+                              'meaning': context.meaning if answer_shown else '',
                               'usingChatGPT': True,
-                              'answerShown': getattr(mw.reviewer, 'state', '') == 'answer'}, ensure_ascii=True)
+                              'answerShown': answer_shown}, ensure_ascii=True)
         web.eval(JS + '\nwindow.SpanishHelper.mount(' + payload + ',' + json.dumps(CSS) + ');')
 
     web.evalWithCallback("document.getElementById('qa')?.innerText || ''", got_visible)
@@ -90,7 +93,7 @@ def handle_message(handled, message, context):
         token, action = request['token'], request['action']
         if not is_current(token, state['token'], mw.state == 'review') or state['context'] is None:
             return (True, None)
-        if action not in ('pronounce', 'example_audio', 'hint', 'check') or action in state['busy']:
+        if action not in ('pronounce', 'example_audio', 'hint', 'check', 'chat') or action in state['busy']:
             return (True, None)
         if action in ('pronounce', 'example_audio') and state['busy'].intersection(('pronounce', 'example_audio')):
             return (True, None)
@@ -100,15 +103,24 @@ def handle_message(handled, message, context):
         selected = plain_text(str(request.get('selection', '')))
         # Only allow vocabulary actually present on the displayed card.
         card_context = state['context']
-        if action not in ('check', 'example_audio') and selected and len(selected) <= 180 and request.get('selectionOnCard') is True:
+        if action not in ('check', 'example_audio', 'chat') and selected and len(selected) <= 180 and request.get('selectionOnCard') is True:
             card_context = replace(card_context, word=selected, example='', explanation='', meaning='')
+        question, history = '', []
+        if action == 'chat':
+            question = request.get('question', '')
+            if not isinstance(question, str) or not question.strip() or len(question) > 1500:
+                raise HelperError('Enter a question of up to 1,500 characters.')
+            question = question.strip()
+            history = [message.copy() for message in state['chat_history']]
+            if getattr(mw.reviewer, 'state', '') != 'answer':
+                card_context = replace(card_context, meaning='', example='', explanation='')
         speech_text = state['hint_example'] if action == 'example_audio' else card_context.word
         if action == 'example_audio' and not speech_text:
             raise HelperError('Muestra primero una pista con un ejemplo para escucharlo.')
         if action == 'example_audio' and len(speech_text) > 1500:
             raise HelperError('Este ejemplo es demasiado largo para escucharlo (máximo 1500 caracteres).')
         if not card_context.word:
-            send('error', action=action, message='Selecciona una palabra de la tarjeta o configura el campo en Herramientas → Spanish Helper.')
+            send('error', action=action, message='Set the Spanish field in Tools → Spanish Helper to ask about this card.' if action == 'chat' else 'Selecciona una palabra de la tarjeta o configura el campo en Herramientas → Spanish Helper.')
             return (True, None)
         options = config()
         if action in ('pronounce', 'example_audio') and not options['online_audio']:
@@ -126,6 +138,8 @@ def handle_message(handled, message, context):
         check_key = (card_context.word, card_context.meaning, card_context.example, options['chatgpt_model'])
 
         def work():
+            if action == 'chat':
+                return ai_request(card_chat, card_context, options, question=question, history=history)
             if action == 'check':
                 if check_key in check_cache:
                     return check_cache[check_key]
@@ -155,12 +169,16 @@ def handle_message(handled, message, context):
             except Exception as error:
                 if still_current():
                     state['busy'].discard(action)
-                    send('error', action=action, message=str(error) if isinstance(error, HelperError) else 'No se puede completar la acción. Vuelve a intentarlo.')
+                    send('error', action=action, message=str(error) if isinstance(error, HelperError) else ('Could not complete your question. Please try again.' if action == 'chat' else 'No se puede completar la acción. Vuelve a intentarlo.'))
                 return
             if not still_current():
                 return
             state['busy'].discard(action)
-            if action == 'pronounce':
+            if action == 'chat':
+                state['chat_history'] = (history + [
+                    {'role': 'user', 'content': question}, {'role': 'assistant', 'content': result['reply']}])[-12:]
+                send('chat', question=question, **result)
+            elif action == 'pronounce':
                 av_player.play_file(str(result))
                 send('audio', action=action, word=card_context.word)
             elif action == 'example_audio':
@@ -191,6 +209,7 @@ def state_changed(new_state, old_state):
         state['token'] = ''
         state['context'] = None
         state['hint_example'] = ''
+        state['chat_history'] = []
         state['busy'].clear()
 
 

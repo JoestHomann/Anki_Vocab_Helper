@@ -6,7 +6,9 @@ A compact toolbar in the Anki desktop review screen. It uses Anki's own light/da
 - **Pista** shows an example or explanation. **Alt+H** shows/hides the hint. When an example is available, the small speaker button beside it (**Escuchar ejemplo**) reads the whole sentence using your pronunciation and slow-audio settings. It ignores selected text and does not regenerate the hint or require an AI key. Definition-only hints have no example speaker.
 - **Comprobar** checks your saved Spanish word–translation pair with AI after you reveal the answer. **Alt+C** opens/closes the result. It uses your eligible ChatGPT subscription without an API key. The result reports a likely match, a nuance, a possible error, or uncertainty, with a suggested translation when appropriate. It checks the full saved pair, regardless of any selected text, and never edits your card.
 
-The settings and sign-in messages use English. The review toolbar and prepared examples use Spanish appropriate for a B1 learner. Saved dictionary hints have variable difficulty and are labelled accordingly. It follows both sides of the current card, clears hints on the next card, and ignores delayed responses for old cards. Notes, templates, scheduling and review history are never edited.
+- **Ask AI** opens a chat about the current card; **Alt+A** also works. Suggested questions cover meaning, translation, grammar, tenses/conjugation, and examples. Choose one or type your own question, then ask follow-ups. Opening the panel does not send a request. Replies use clear English with short Spanish examples.
+
+The settings and sign-in messages use English. The pronunciation/hint/check controls and prepared examples use Spanish appropriate for a B1 learner; the chat interface uses English. Saved dictionary hints have variable difficulty and are labelled accordingly. It follows both sides of the current card, clears hints on the next card, and ignores delayed responses for old cards. Notes, templates, scheduling and review history are never edited.
 
 ## Install
 
@@ -45,6 +47,14 @@ Set **Translation field** if your saved translation uses a custom field. Otherwi
 
 Desktop Anki with Python 3.9+ and Qt 6 is the target. It does not run in AnkiWeb, AnkiDroid or AnkiMobile. The integration is checked against the installed Anki runtime; see `output/validation.md` for actual verification results.
 
+## Ask AI about a card
+
+Click **Ask AI** / **Alt+A** to open the chat, then choose **Meaning & usage**, **Translation**, **Grammar**, **Tenses & conjugation**, or **More examples**. Type a custom question for anything else. **Enter** sends; **Shift+Enter** inserts a new line. Typing in the chat does not trigger review shortcuts. Closing and reopening the panel retains the current conversation without another request.
+
+The chat uses your connected ChatGPT subscription and selected plan model. Before revealing the answer, it shares only the Spanish word selected by your field settings and disables the saved-translation preset. After revealing it, requests also include your saved translation and card example when available. A selected phrase elsewhere on the card does not replace the chat context. It never edits your cards.
+
+Questions are limited to 1,500 characters. Up to six recent exchanges are sent for follow-ups. Chat stays in memory and resets on a new card, a new card side, or profile close. Failed requests retain your question for retry; late replies for a previous card are ignored. Chats are not written to the add-on cache or Anki notes. Requests have response storage disabled. AI explanations can still be mistaken.
+
 ## Choose the Spanish text
 
 The helper detects common field names (`Spanish`, `Español`, `Palabra`, `Expression`, `Word`, `Front`, `question`, `Vorderseite`) when that field appears on the current card side. Plain short cards also work automatically. It cannot reliably infer the Spanish vocabulary inside every custom or multilingual template.
@@ -72,7 +82,7 @@ Online pronunciation uses Google's public Translate TTS endpoint and caches MP3s
 
 The example speaker uses the same audio cache and voice settings. Examples longer than 180 characters are downloaded in short segments and queued in order, so the sentence is not cut off. It supports examples up to 1,500 characters. Audio responses for a previous card or replaced hint are ignored; errors allow another attempt.
 
-Only clicking a button sends text to a service. Google receives the chosen word/phrase; the dictionary receives a search word. For AI hints, OpenAI receives the chosen word and a short translation field to help select its meaning. For translation checks, it receives the saved pair and optional example. Both use response storage disabled in the request. No full deck, collection, API key or note HTML is sent to the preview server. AI results may need correction, especially for ambiguous vocabulary.
+Only clicking a button sends text to a service. Google receives the chosen word/phrase; the dictionary receives a search word. For AI hints, OpenAI receives the chosen word and a short translation field to help select its meaning. For translation checks, it receives the saved pair and optional example. Card chat sends the current question, recent conversation, word, and (after revealing the answer) the saved translation and example. All AI requests use response storage disabled in the request. No full deck, collection, API key or note HTML is sent to the preview server. AI results may need correction, especially for ambiguous vocabulary.
 
 Wiktionary examples are obtained from [Free Dictionary API](https://freedictionaryapi.com/), with definitions obtained directly from [Spanish Wiktionary](https://es.wiktionary.org/). A link to the original entry is shown in the hint. That material is licensed under [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/). The local vocabulary examples are written for this project.
 
@@ -87,7 +97,7 @@ py tools/build.py
 py tools/preview.py
 ```
 
-Open <http://127.0.0.1:8765/preview/> for a working preview with sample cards, online audio, local hints, light/dark themes, and narrow layouts. Subscription AI features run inside Anki; the preview directs you there for translation checks. The preview uses demonstration cards and does not connect to an Anki collection or read authentication secrets. Stop the server with Ctrl+C.
+Open <http://127.0.0.1:8765/preview/> for a working preview with sample cards, online audio, local hints, light/dark themes, and narrow layouts. Subscription AI features run inside Anki; the preview directs you there for translation checks and chat. The preview uses demonstration cards and does not connect to an Anki collection or read authentication secrets. Stop the server with Ctrl+C.
 
 The full-deck audit reads an offline collection snapshot in `output/audit/snapshot/`. The audited word-and-meaning regression fixture is in `tools/data/audited-vocabulary.json`. The audit preparation tools can extract dictionary data, select relevant senses locally, and compile `spanish_helper/deck_hints.json`; these optional preparation dependencies are not installed into Anki. Dictionary attribution is in `spanish_helper/THIRD_PARTY_NOTICES.md`.
 

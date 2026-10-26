@@ -62,6 +62,27 @@ p { margin: 7px 0; overflow-wrap: anywhere; }
 #status { width: min(560px, calc(100% - 32px)); margin: 0 auto; padding: 0 0 9px; color: var(--sh-muted); font-size: 12px; overflow-wrap: anywhere; }
 #status:empty { display: none; }
 #status[data-error="true"] { color: var(--accent-danger, #dc2626); }
+.chat-panel { display: flex; flex-direction: column; max-height: min(calc(100vh - 130px), 590px); overflow: hidden; padding-bottom: 10px; }
+.chat-panel > :not(.chat-messages) { flex-shrink: 0; }
+.chat-context { font-weight: 600; overflow-wrap: anywhere; }
+.presets { display: flex; flex-wrap: wrap; gap: 5px; margin: 12px 0; }
+.preset { font-size: 11px; min-height: 27px; padding: 4px 9px; white-space: normal; text-align: left; }
+.chat-empty { color: var(--sh-muted); font-size: 12px; }
+.chat-messages { flex: 1 1 auto; min-height: 0; max-height: 230px; overflow-y: auto; overscroll-behavior: contain; }
+.chat-message { padding: 9px 11px; margin: 7px 0; border: 1px solid var(--sh-border); border-radius: 8px; }
+.chat-message.user { margin-left: 24px; background: var(--sh-button); }
+.chat-message.assistant { margin-right: 12px; }
+.chat-message.pending { opacity: .7; }
+.chat-speaker { display: block; font-size: 10px; color: var(--sh-muted); margin-bottom: 4px; }
+.chat-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; }
+.chat-form > label { display: block; font-size: 11px; color: var(--sh-muted); margin: 10px 0 5px; }
+.chat-composer { display: flex; align-items: flex-end; gap: 7px; }
+textarea { flex: 1; min-width: 0; resize: vertical; max-height: 120px; padding: 8px; border: 1px solid var(--border, #c4c4c4); border-radius: var(--sh-radius); background: var(--sh-button); color: var(--sh-fg); font: 13px/1.4 "Segoe UI", system-ui, sans-serif; }
+textarea:focus-visible { outline: 2px solid var(--border-focus, #3b82f6); outline-offset: 1px; }
+#chat-error { color: var(--accent-danger, #dc2626); font-size: 12px; }
+#chat-error:empty, .chat-messages:empty { display: none; }
 [hidden] { display: none !important; }
+@media (max-width: 480px) { .actions { flex-wrap: wrap; } .actions > button { flex: 1 1 calc(50% - 6px); } }
 @media (max-width: 400px) { kbd { display: none; } .actions { gap: 4px; padding: 8px; } button { padding: 5px 8px; } }
 @media (max-height: 420px) { .result { max-height: 35vh; } .actions { padding: 5px 8px; } }
+@media (max-height: 540px) { .chat-panel { max-height: calc(100vh - 110px); overflow-y: auto; } .chat-messages { flex: 0 0 auto; max-height: 120px; } }

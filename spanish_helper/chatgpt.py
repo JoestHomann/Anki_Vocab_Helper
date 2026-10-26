@@ -268,7 +268,10 @@ def sign_out(profile):
 def response(profile, payload):
     token = _access(profile)
     payload = {key: value for key, value in payload.items() if key not in ('max_output_tokens', 'temperature', 'top_p')}
-    payload.update(store=False, stream=True, input=[{'role': 'user', 'content': payload['input']}])
+    conversation = payload['input']
+    if isinstance(conversation, str):
+        conversation = [{'role': 'user', 'content': conversation}]
+    payload.update(store=False, stream=True, input=conversation)
     request = Request(RESOURCE + '/responses', data=json.dumps(payload).encode(),
                       headers={'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Accept': 'text/event-stream'})
     try:

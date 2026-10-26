@@ -59,8 +59,8 @@ class Handler(SimpleHTTPRequestHandler):
             elif request['action'] == 'hint':
                 context = core.CardContext(word)
                 result = {'event': 'hint', 'word': word, **(core.local_hint(context, vocabulary, deck_hints) or services.dictionary_hint(word))}
-            elif request['action'] == 'check':
-                raise services.HelperError('Para comprobar traducciones, conecta tu suscripción de ChatGPT en Anki → Herramientas → Spanish Helper.')
+            elif request['action'] in ('check', 'chat'):
+                raise services.HelperError('For AI checks and card chat, connect your ChatGPT subscription in Anki → Tools → Spanish Helper.')
             else:
                 raise ValueError('Unknown action')
         except Exception as error:
