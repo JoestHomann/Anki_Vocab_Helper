@@ -5,7 +5,7 @@ import sys
 import tempfile
 import types
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from urllib.error import HTTPError, URLError
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -133,27 +133,26 @@ class ServicesTests(unittest.TestCase):
                 services.request_bytes('https://example.com')
 
     def test_auth_error_does_not_echo_secret_or_server_body(self):
-        with patch.object(services, 'urlopen', side_effect=HTTPError('https://api.openai.com', 401, 'secret', {}, None)):
+        with patch.object(services, 'urlopen', side_effect=HTTPError('https://example.com', 401, 'secret', {}, None)):
             with self.assertRaises(services.HelperError) as captured:
-                services.request_bytes('https://api.openai.com', {}, 'sk-secret')
+                services.request_bytes('https://example.com')
             self.assertNotIn('secret', str(captured.exception))
 
     def test_ai_request_is_structured_and_storage_disabled(self):
         expected = {'example': 'Quiero ahorrar dinero para visitar a mi familia este verano.', 'explanation': 'Guardar dinero para usarlo en el futuro.'}
         response = {'output': [{'content': [{'type': 'output_text', 'text': json.dumps(expected)}]}]}
-        with patch.object(services, 'request_bytes', return_value=(json.dumps(response).encode(), 'application/json')) as request:
-            hint = services.ai_hint(core.CardContext('ahorrar', meaning='sparen'), 'sk-test', 'gpt-4.1-mini')
+        request = Mock(return_value=(json.dumps(response).encode(), 'application/json'))
+        hint = services.ai_hint(core.CardContext('ahorrar', meaning='sparen'), 'test-plan-model', requester=request)
         self.assertEqual(hint['example'], expected['example'])
-        payload = request.call_args.args[1]
+        payload = request.call_args.args[0]
         self.assertFalse(payload['store'])
         self.assertTrue(payload['text']['format']['strict'])
         self.assertIn('sparen', payload['input'])
-        self.assertNotIn('sk-test', json.dumps(payload))
 
     def test_ai_refusal_or_incomplete_json_is_not_displayed_as_hint(self):
-        with patch.object(services, 'request_bytes', return_value=(b'{"output":[{"content":[{"type":"refusal"}]}]}', 'application/json')):
-            with self.assertRaises(services.HelperError):
-                services.ai_hint(core.CardContext('hola'), 'sk-test', 'test')
+        request = Mock(return_value=(b'{"output":[{"content":[{"type":"refusal"}]}]}', 'application/json'))
+        with self.assertRaises(services.HelperError):
+            services.ai_hint(core.CardContext('hola'), 'test-plan-model', requester=request)
 
 
 if __name__ == '__main__':

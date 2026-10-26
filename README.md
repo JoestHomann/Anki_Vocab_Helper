@@ -4,7 +4,7 @@ A compact toolbar in the Anki desktop review screen. It uses Anki's own light/da
 
 - **Pronunciar** plays the current Spanish word or a selected phrase. **Alt+P** also works.
 - **Pista** shows an example or explanation. **Alt+H** shows/hides the hint. When an example is available, the small speaker button beside it (**Escuchar ejemplo**) reads the whole sentence using your pronunciation and slow-audio settings. It ignores selected text and does not regenerate the hint or require an AI key. Definition-only hints have no example speaker.
-- **Comprobar** checks your saved Spanish word–translation pair with AI after you reveal the answer. **Alt+C** opens/closes the result. It can use your eligible ChatGPT subscription without an API key, or a separately billed API key. The result reports a likely match, a nuance, a possible error, or uncertainty, with a suggested translation when appropriate. It checks the full saved pair, regardless of any selected text, and never edits your card.
+- **Comprobar** checks your saved Spanish word–translation pair with AI after you reveal the answer. **Alt+C** opens/closes the result. It uses your eligible ChatGPT subscription without an API key. The result reports a likely match, a nuance, a possible error, or uncertainty, with a suggested translation when appropriate. It checks the full saved pair, regardless of any selected text, and never edits your card.
 
 The interface and prepared examples use Spanish appropriate for a B1 learner. Saved dictionary hints have variable difficulty and are labelled accordingly. It follows both sides of the current card, clears hints on the next card, and ignores delayed responses for old cards. Notes, templates, scheduling and review history are never edited.
 
@@ -24,29 +24,24 @@ For an existing local installation, add `-Update`. The installer backs up the ol
 
 ## Use your ChatGPT subscription (Windows)
 
-1. Restart Anki after installing v1.3.0 or later.
+1. Restart Anki after installing the update.
 2. Open **Tools / Extras → Spanish Helper…**.
-3. Select **Suscripción de ChatGPT (sin clave API)** under **Usar IA con** (the default).
-4. Click **Continue with ChatGPT**, sign in in your browser, and allow the add-on to use your plan. No API key is needed.
-5. Choose a model offered by your account, or keep Automatic, and save. Automatic prefers an available Luna model; it never assumes an API-only model is included.
+3. Click **Continue with ChatGPT**, sign in in your browser, and allow the add-on to use your plan. No API key is needed.
+4. Choose a model offered by your account, or keep Automatic, and save. Automatic prefers an available Luna model; it only uses the account's offered catalog.
 
 Eligible ChatGPT Plus/Pro accounts can use plan allowances in local personal/open-source tools through the [official Sign in with ChatGPT integration](https://developers.openai.com/siwc/token-sharing-open-source). Account eligibility and plan/app usage limits still apply. **Manage usage** opens your ChatGPT usage settings. The toolbar identifies this mode with **Using ChatGPT plan**. There is no silent fallback to paid API calls when consent, eligibility, connection, or usage limits prevent a request.
 
-The browser callback is loopback-only, with random state, nonce, and PKCE. Identity signatures are verified using OpenAI's published signing keys and Windows CNG. OAuth sessions are encrypted with Windows DPAPI in the installed add-on's `user_files/chatgpt/` folder, separate for each Anki profile. Rotating refresh tokens are updated atomically and refreshes are serialized. No access/refresh tokens are written to configuration, logs, Git, or the preview server. Use the account picker to reconnect an existing registration or **Añadir una cuenta** to register another. **Cerrar sesión** revokes the active renewable session when possible and clears its local tokens; if revocation cannot be confirmed, the UI directs you to disconnect the app in ChatGPT settings. Existing API-key settings are preserved and used only if you explicitly select API-key mode.
+The browser callback is loopback-only, with random state, nonce, and PKCE. Identity signatures are verified using OpenAI's published signing keys and Windows CNG. OAuth sessions are encrypted with Windows DPAPI in the installed add-on's `user_files/chatgpt/` folder, separate for each Anki profile. Rotating refresh tokens are updated atomically and refreshes are serialized. No access/refresh tokens are written to configuration, logs, Git, or the preview server. Use the account picker to reconnect an existing registration or **Añadir una cuenta** to register another. **Cerrar sesión** revokes the active renewable session when possible and clears its local tokens; if revocation cannot be confirmed, the UI directs you to disconnect the app in ChatGPT settings.
 
 End-to-end eligibility and live inference must be confirmed by completing your own sign-in. Automated tests use synthetic identities and controlled Responses streams; no real ChatGPT account was connected during development. The subscription integration uses Windows OS APIs and is currently Windows-only.
 
-## Translation checks with an API key (optional)
+Version 1.3.1 uses subscription sign-in exclusively. The API-key route, key storage code, provider selector, and separate API-model settings have been removed. Old API settings are ignored and removed from add-on configuration when you next save settings. Previously stored Windows credentials and environment variables are never read or changed by this version.
 
-If you choose **Clave API (facturación aparte)** in settings, enter your OpenAI API key once, leave **Recordar la clave en este equipo (Windows)** checked, and save. The add-on stores it in Windows Credential Manager for this Anki profile and restores it automatically when needed after restarting Anki. It is tied to your Windows account and this computer, not saved in add-on configuration, Anki sync, exported decks, backups of the add-on, or Git. Checking works independently of the AI-hint checkbox. API-key mode requires separate API billing/credit; it does not use your ChatGPT subscription.
-
-To forget it, click **Olvidar al guardar** and then **Save**. Cancel leaves the saved key unchanged. To use a key only for the current session, uncheck **Recordar** and save; any key previously saved for this profile is removed from Credential Manager. Storage failures are reported and keep the settings dialog open. `OPENAI_API_KEY` remains an optional fallback and is never changed by the add-on; deleting the saved key does not delete an environment variable you configured yourself. On other operating systems, secure remembering is unavailable, so use a session key or the environment variable. Keys are not copied automatically from an already-running older add-on: enter yours once after installing this update.
+## Translation checks
 
 The checker sends only the Spanish word, your saved translation (up to 500 characters), and your card's example if present (up to 500 characters). It does not use the existing deck-hint library as evidence: those hints were prepared using the very translations being checked. The request uses `store: false`. Checks run only on an explicit click/shortcut after revealing the answer. Repeated checks of the same pair/model/example use a profile-session cache; edits and model changes select a new cache entry. Closing a profile clears the cache and session key.
 
-Set **Campo de traducción** if your saved translation uses a custom field. Otherwise `Translation`, `Meaning`, `Traducción`, `Back`, `answer`, and common German names are recognized. Set **Campo español** explicitly for unusual/reverse layouts. A missing field or key produces setup guidance, never a guessed verdict. AI results are suggestions, not authoritative verification; valid synonyms and individual meanings should be accepted, and ambiguity may produce an inconclusive result.
-
-**Modelo para comprobar** defaults to `gpt-6-luna`, separately from the hint model. As checked on 26 October 2026, its standard API rate is $0.10 per million input tokens and $0.50 per million output tokens ([official model/pricing documentation](https://developers.openai.com/api/docs/models/gpt-6-luna)). An illustrative 500-input/200-output-token check costs $0.00015, or $0.15 for 1,000 checks; actual usage varies. There is no free OpenAI API tier for this feature.
+Set **Campo de traducción** if your saved translation uses a custom field. Otherwise `Translation`, `Meaning`, `Traducción`, `Back`, `answer`, and common German names are recognized. Set **Campo español** explicitly for unusual/reverse layouts. Missing fields or a disconnected ChatGPT account produce setup guidance, never a guessed verdict. AI results are suggestions, not authoritative verification; valid synonyms and individual meanings should be accepted, and ambiguity may produce an inconclusive result.
 
 Desktop Anki with Python 3.9+ and Qt 6 is the target. It does not run in AnkiWeb, AnkiDroid or AnkiMobile. The integration is checked against the installed Anki runtime; see `output/validation.md` for actual verification results.
 
@@ -67,7 +62,7 @@ The helper tries these in order:
 
 The current-deck hints work without an API key or Internet connection. See `output/audit/coverage.md` for the report. New cards added after the 19 October 2026 snapshot are outside this completed coverage audit and use the regular lookup fallback.
 
-For B1 explanations of words outside the local library, enable **Generar pistas B1 cuando no hay pista local**. These requests use your selected ChatGPT-plan or API-key mode. On Windows, **Recordar** securely saves an optional API key for reuse by this profile. API-key mode also supports session-only keys or `OPENAI_API_KEY`. Its hint model defaults to `gpt-4.1-mini`; subscription mode uses the account's model catalog. No AI requests happen merely by opening a card.
+For B1 explanations of words outside the local library, enable **Generar pistas B1 cuando no hay pista local**. These requests use your ChatGPT subscription and selected account model, just like translation checks. No AI requests happen merely by opening a card.
 
 If a word has no local hint, dictionary example, or Spanish definition, the helper explains how to add an `Ejemplo` field or enable AI. Inflected words and regional expressions may be absent from the dictionary. Select the base form where possible. The local library matches articles (e.g. `la manzana`) but does not pretend to be a complete dictionary or automatic conjugation engine.
 
@@ -92,7 +87,7 @@ py tools/build.py
 py tools/preview.py
 ```
 
-Open <http://127.0.0.1:8765/preview/> for a working preview with sample cards, online audio, local hints, light/dark themes, and narrow layouts. Translation checks use the preview server's `OPENAI_API_KEY` if configured; the browser never receives the key. The preview uses demonstration cards and does not connect to an Anki collection. Stop the server with Ctrl+C.
+Open <http://127.0.0.1:8765/preview/> for a working preview with sample cards, online audio, local hints, light/dark themes, and narrow layouts. Subscription AI features run inside Anki; the preview directs you there for translation checks. The preview uses demonstration cards and does not connect to an Anki collection or read authentication secrets. Stop the server with Ctrl+C.
 
 The full-deck audit reads an offline collection snapshot in `output/audit/snapshot/`. The audited word-and-meaning regression fixture is in `tools/data/audited-vocabulary.json`. The audit preparation tools can extract dictionary data, select relevant senses locally, and compile `spanish_helper/deck_hints.json`; these optional preparation dependencies are not installed into Anki. Dictionary attribution is in `spanish_helper/THIRD_PARTY_NOTICES.md`.
 

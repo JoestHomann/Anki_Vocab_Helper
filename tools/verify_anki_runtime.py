@@ -20,7 +20,7 @@ os.add_dll_directory(str(ANKI / 'app_packages/pywin32_system32'))
 os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 
 import aqt
-from aqt.qt import QApplication, QMainWindow, QMenu, QDialog, QTimer, QLineEdit, QCheckBox, QPushButton, QDialogButtonBox, QFontDatabase, QFont
+from aqt.qt import QApplication, QMainWindow, QMenu, QDialog, QTimer, QLineEdit, QCheckBox, QPushButton, QDialogButtonBox, QFontDatabase, QFont, QComboBox
 from aqt.reviewer import Reviewer
 from anki.buildinfo import version
 
@@ -31,8 +31,10 @@ window = QMainWindow()
 window.form = SimpleNamespace(menuTools=QMenu(window))
 window.pm = SimpleNamespace(profileFolder=lambda: str(ROOT / 'output/test-profile-one'))
 options = json.loads((ROOT / 'spanish_helper/config.json').read_text())
-options['ai_provider'] = 'api_key'
-window.addonManager = SimpleNamespace(getConfig=lambda name: options.copy(), writeConfig=lambda name, value: options.update(value))
+options['chatgpt_model'] = 'test-plan-model'
+def write_config(name, value):
+    options.clear(); options.update(value)
+window.addonManager = SimpleNamespace(getConfig=lambda name: options.copy(), writeConfig=write_config)
 jobs = []
 window.taskman = SimpleNamespace(run_in_background=lambda task, done: jobs.append((task, done)))
 window.state = 'review'
@@ -47,12 +49,7 @@ addon = importlib.util.module_from_spec(spec)
 sys.modules['spanish_helper'] = addon
 spec.loader.exec_module(addon)
 
-# This integration harness never reads or changes real Windows credentials.
-saved_keys = {}
-patch.object(addon.credentials, 'supported', return_value=True).start()
-patch.object(addon.credentials, 'load_key', side_effect=lambda profile: saved_keys.get(profile, '')).start()
-patch.object(addon.credentials, 'save_key', side_effect=lambda profile, key: saved_keys.__setitem__(profile, key)).start()
-patch.object(addon.credentials, 'delete_key', side_effect=lambda profile: saved_keys.pop(profile, None)).start()
+# Never read real ChatGPT sessions in this integration harness.
 patch.object(addon.chatgpt, 'accounts', return_value={'active': '', 'accounts': []}).start()
 
 
@@ -170,7 +167,6 @@ assert len(jobs) == before and 'Muestra primero' in scripts[-1]
 window.reviewer.state = 'answer'
 window.reviewer.web.evalWithCallback = lambda js, callback: callback('embarazada sparen')
 addon.show_card(window.reviewer.card)
-addon.state['key'] = 'test-key'
 checked = {'verdict': 'incorrect', 'explanation': 'No es una traducción válida.', 'suggestion': 'schwanger', 'saved': 'sparen', 'source': 'test'}
 with patch.object(addon, 'check_translation', return_value=checked) as checker:
     message = 'spanish-helper:' + json.dumps({'token': addon.state['token'], 'action': 'check', 'selection': 'other text', 'selectionOnCard': True})
@@ -203,19 +199,18 @@ with patch.object(addon, 'check_translation', return_value=checked) as checker:
 print('PASS: answer-only translation check, saved pair, duplicate clicks, caching, edits and stale replies')
 
 addon.check_cache.clear()
-addon.state['key'] = ''
 addon.show_card(window.reviewer.card)
-with patch.dict(os.environ, {}, clear=True):
+with patch.object(addon.chatgpt, 'response', side_effect=addon.chatgpt.AuthError(
+        'Abre Herramientas → Spanish Helper y pulsa Continue with ChatGPT.')):
     click('check')
     finish()
-assert 'clave de OpenAI' in scripts[-1]
-print('PASS: missing API key has an actionable error without a network call')
+assert 'Continue with ChatGPT' in scripts[-1]
+print('PASS: disconnected account gives subscription sign-in guidance')
 
-addon.state['key'] = 'temporary-test-key'
+addon.hint_cache['test'] = {'example': 'cached'}
 addon.profile_closed()
-assert addon.state['key'] == ''
-assert not addon.check_cache
-print('PASS: session key cleared on profile close')
+assert not addon.check_cache and not addon.hint_cache and not addon.state['token']
+print('PASS: profile close clears caches and review state')
 
 
 def run_settings(edit, save=True):
@@ -229,75 +224,40 @@ def run_settings(edit, save=True):
 
 
 window.state = 'deckBrowser'
-test_profile = window.pm.profileFolder()
-with patch.dict(os.environ, {}, clear=True):
-    run_settings(lambda dialog: dialog.findChild(QLineEdit, 'apiKey').setText('synthetic-persistent-key'))
-    assert saved_keys[test_profile] == 'synthetic-persistent-key'
-    assert 'synthetic-persistent-key' not in json.dumps(options)
-    addon.profile_closed()
-    assert addon.state['key'] == ''
-    assert addon.api_key() == 'synthetic-persistent-key'
-    # Profiles must never inherit one another's saved key.
-    addon.profile_closed()
-    window.pm.profileFolder = lambda: str(ROOT / 'output/test-profile-two')
-    assert addon.api_key() == ''
-    addon.profile_closed()
-    window.pm.profileFolder = lambda: test_profile
-    assert addon.api_key() == 'synthetic-persistent-key'
-    # Canceling even after pressing Forget must leave the stored key unchanged.
-    run_settings(lambda dialog: dialog.findChild(QPushButton, 'forgetApiKey').click(), save=False)
-    assert saved_keys[test_profile] == 'synthetic-persistent-key'
-    run_settings(lambda dialog: dialog.findChild(QPushButton, 'forgetApiKey').click())
-    assert test_profile not in saved_keys and not addon.state['key'] and not options['remember_api_key']
-    def session_only(dialog):
-        dialog.findChild(QLineEdit, 'apiKey').setText('synthetic-session-key')
-        dialog.findChild(QCheckBox, 'rememberApiKey').setChecked(False)
-    run_settings(session_only)
-    assert addon.api_key() == 'synthetic-session-key' and test_profile not in saved_keys
-    addon.profile_closed()
-    assert addon.api_key() == ''
-    # A storage error keeps the dialog open and does not report a successful save.
-    original_options = options.copy()
-    def attempt_failed_save():
-        dialog = next(w for w in app.topLevelWidgets() if isinstance(w, QDialog) and w.isVisible())
-        dialog.findChild(QLineEdit, 'apiKey').setText('synthetic-failed-key')
-        dialog.findChild(QCheckBox, 'rememberApiKey').setChecked(True)
-        dialog.findChild(QDialogButtonBox).button(QDialogButtonBox.StandardButton.Save).click()
-        assert dialog.isVisible()
-        dialog.reject()
-    with patch.object(addon.credentials, 'save_key', side_effect=addon.credentials.CredentialStoreError('Test storage failure')), patch.object(addon, 'showWarning') as warning:
-        QTimer.singleShot(0, attempt_failed_save)
-        addon.settings()
-        warning.assert_called_once()
-    assert options == original_options and test_profile not in saved_keys
-    assert 'synthetic-failed-key' not in json.dumps(options)
-with patch.dict(os.environ, {'OPENAI_API_KEY': 'synthetic-environment-key'}, clear=True):
-    addon.profile_closed()
-    assert addon.api_key() == 'synthetic-environment-key'
-addon.profile_closed()
-print('PASS: settings save/restore, profile isolation, cancel, forget, session-only mode, storage errors and environment fallback; keys stay out of config')
-
-options['ai_provider'] = 'chatgpt'
-options['chatgpt_model'] = 'test-plan-model'
-with patch.object(addon.chatgpt, 'response', return_value=(json.dumps({'status':'completed','output':[{'content':[{'type':'output_text','text':json.dumps({'verdict':'correct','explanation':'Es una traducción válida.','suggestion':''})}]}]}).encode(), 'application/json')) as plan, patch.object(addon, 'api_key', side_effect=AssertionError('Paid API key was accessed')):
-    result = addon.ai_request(addon.check_translation, addon.state['context'] or addon.extract_context({'Spanish':'hola','Back':'Hallo'}, 'hola', options), '', options)
+context = addon.extract_context({'Spanish':'hola','Back':'Hallo'}, 'hola', options)
+# Stale API settings and environment keys cannot switch the transport or model.
+options.update(ai_provider='api_key', model='old-api-model', check_model='old-check-model', remember_api_key=True)
+assert set(addon.config()) == set(addon.DEFAULTS)
+with patch.dict(os.environ, {'OPENAI_API_KEY': 'synthetic-unused-key'}), patch.object(addon.chatgpt, 'response', return_value=(json.dumps({'status':'completed','output':[{'content':[{'type':'output_text','text':json.dumps({'verdict':'correct','explanation':'Es una traducción válida.','suggestion':''})}]}]}).encode(), 'application/json')) as plan, patch.object(addon, 'get_audio', side_effect=AssertionError('Unexpected public request')):
+    result = addon.ai_request(addon.check_translation, context, addon.config())
     assert 'Using ChatGPT plan' in result['source']
     assert plan.call_args.args[1]['model'] == 'test-plan-model'
-with patch.object(addon.chatgpt, 'response', side_effect=addon.chatgpt.AuthError('Plan limit')), patch.object(addon, 'api_key', side_effect=AssertionError('Paid fallback')):
+    assert 'synthetic-unused-key' not in str(plan.call_args)
+with patch.object(addon.chatgpt, 'response', side_effect=addon.chatgpt.AuthError('Plan limit')):
     try:
-        addon.ai_request(addon.check_translation, addon.extract_context({'Spanish':'hola','Back':'Hallo'}, 'hola', options), '', options)
+        addon.ai_request(addon.check_translation, context, addon.config())
         raise AssertionError('Plan error was suppressed')
     except addon.HelperError as error:
         assert 'Plan limit' in str(error)
-print('PASS: ChatGPT plan transport is used without a paid API key; plan errors never trigger a paid fallback')
+assert not hasattr(addon, 'api_key') and not hasattr(addon, 'credentials')
+print('PASS: legacy API settings and environment keys cannot enable API access; subscription errors remain errors')
+
 def inspect_subscription_settings(dialog):
-    assert not dialog.findChild(QLineEdit, 'apiKey').isVisible()
+    assert dialog.findChild(QLineEdit, 'apiKey') is None
+    assert dialog.findChild(QCheckBox, 'rememberApiKey') is None
+    assert dialog.findChild(QComboBox, 'aiProvider') is None
+    assert len(dialog.findChildren(QLineEdit)) == 4  # Field mappings only.
+    assert any(button.text() == 'Continue with ChatGPT' for button in dialog.findChildren(QPushButton))
     button = dialog.findChild(QDialogButtonBox).button(QDialogButtonBox.StandardButton.Save)
     assert button.isVisible()
     (ROOT / 'output/screenshots').mkdir(parents=True, exist_ok=True)
     dialog.grab().save(str(ROOT / 'output/screenshots/chatgpt-settings.png'))
-with patch.object(addon.credentials, 'save_key', side_effect=AssertionError('API vault changed')), patch.object(addon.credentials, 'delete_key', side_effect=AssertionError('API vault changed')):
-    run_settings(inspect_subscription_settings)
-assert options['ai_provider'] == 'chatgpt'
-print('PASS: subscription settings hide API-key controls, keep Save visible and leave saved API keys untouched')
+
+original_options = options.copy()
+run_settings(inspect_subscription_settings, save=False)
+assert options == original_options
+run_settings(inspect_subscription_settings)
+assert set(options) == set(addon.DEFAULTS)
+assert 'ai_provider' not in options and 'remember_api_key' not in options
+print('PASS: subscription-only settings, cancel, save, obsolete settings cleanup and visible Save button')
 print('Anki runtime:', version)

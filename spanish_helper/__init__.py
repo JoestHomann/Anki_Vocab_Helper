@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 from uuid import uuid4
 from dataclasses import replace
@@ -11,12 +10,12 @@ from aqt import mw, gui_hooks
 from aqt.reviewer import Reviewer
 from aqt.qt import (QAction, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFormLayout,
                     QHBoxLayout, QLabel, QLineEdit, QPushButton, QScrollArea, QVBoxLayout, QWidget)
-from aqt.utils import showInfo, showWarning
+from aqt.utils import showInfo
 from aqt.sound import av_player
 from anki.sound import SoundOrVideoTag, TTSTag
 
 from .core import extract_context, is_current, local_hint, plain_text
-from . import chatgpt, credentials
+from . import chatgpt
 from .services import HelperError, ai_hint, check_translation, dictionary_hint, get_audio, get_example_audio
 
 ROOT = Path(__file__).parent
@@ -25,27 +24,15 @@ DECK_HINTS = json.loads((ROOT / 'deck_hints.json').read_text(encoding='utf-8')) 
 DEFAULTS = json.loads((ROOT / 'config.json').read_text(encoding='utf-8'))
 CSS = (ROOT / 'web' / 'overlay.css').read_text(encoding='utf-8')
 JS = (ROOT / 'web' / 'overlay.js').read_text(encoding='utf-8')
-state = {'token': '', 'context': None, 'key': '', 'busy': set(), 'hint_example': '',
-         'key_loaded': False, 'key_error': ''}
+state = {'token': '', 'context': None, 'busy': set(), 'hint_example': ''}
 hint_cache = {}
 check_cache = {}
 
 
 def config():
-    return {**DEFAULTS, **(mw.addonManager.getConfig(__name__) or {})}
-
-
-def api_key():
-    """Restore only this profile's saved key, once per profile session."""
-    if not state['key_loaded']:
-        state['key_loaded'] = True
-        state['key_error'] = ''
-        if not state['key'] and config()['remember_api_key'] and credentials.supported():
-            try:
-                state['key'] = credentials.load_key(mw.pm.profileFolder())
-            except credentials.CredentialStoreError as error:
-                state['key_error'] = str(error)
-    return state['key'] or os.environ.get('OPENAI_API_KEY', '').strip()
+    saved = mw.addonManager.getConfig(__name__) or {}
+    # Old provider/key/model options cannot re-enable removed authentication routes.
+    return {name: saved.get(name, default) for name, default in DEFAULTS.items()}
 
 
 def send(event, **values):
@@ -54,16 +41,14 @@ def send(event, **values):
         mw.reviewer.web.eval('window.SpanishHelper && window.SpanishHelper.receive(' + payload + ');')
 
 
-def ai_request(function, context, key, options):
-    if options['ai_provider'] != 'chatgpt':
-        return function(context, key, options['check_model'] if function is check_translation else options['model'])
+def ai_request(function, context, options):
     profile = mw.pm.profileFolder()
     try:
         model = options['chatgpt_model']
         if not model:
             choices = chatgpt.models(profile)
             model = next((item['slug'] for item in choices if 'luna' in item['slug']), choices[0]['slug'])
-        result = function(context, '', model, requester=lambda payload: chatgpt.response(profile, payload))
+        result = function(context, model, requester=lambda payload: chatgpt.response(profile, payload))
         result['source'] = result.get('source', '') + ' · Using ChatGPT plan'
         return result
     except chatgpt.AuthError as error:
@@ -90,7 +75,7 @@ def show_card(card):
         context = extract_context(fields, str(text or ''), options)
         state['context'] = context
         payload = json.dumps({'token': token, 'word': context.word,
-                              'usingChatGPT': options['ai_provider'] == 'chatgpt',
+                              'usingChatGPT': True,
                               'answerShown': getattr(mw.reviewer, 'state', '') == 'answer'}, ensure_ascii=True)
         web.eval(JS + '\nwindow.SpanishHelper.mount(' + payload + ',' + json.dumps(CSS) + ');')
 
@@ -137,17 +122,14 @@ def handle_message(handled, message, context):
             state['hint_example'] = ''
             state['busy'].discard('example_audio')
         state['busy'].add(action)
-        key = api_key() if action in ('hint', 'check') and options['ai_provider'] != 'chatgpt' else ''
-        cache_key = (card_context, options['ai_hints'], options['model'], options['ai_provider'], options['chatgpt_model'])
-        check_key = (card_context.word, card_context.meaning, card_context.example, options['check_model'], options['ai_provider'], options['chatgpt_model'])
+        cache_key = (card_context, options['ai_hints'], options['chatgpt_model'])
+        check_key = (card_context.word, card_context.meaning, card_context.example, options['chatgpt_model'])
 
         def work():
             if action == 'check':
                 if check_key in check_cache:
                     return check_cache[check_key]
-                if options['ai_provider'] != 'chatgpt' and not key and state['key_error']:
-                    raise HelperError(state['key_error'])
-                return ai_request(check_translation, card_context, key, options)
+                return ai_request(check_translation, card_context, options)
             if action == 'pronounce':
                 return get_audio(card_context.word, ROOT / 'user_files' / 'audio', options['slow_audio'])
             if action == 'example_audio':
@@ -158,9 +140,7 @@ def handle_message(handled, message, context):
             if cache_key in hint_cache:
                 return hint_cache[cache_key]
             if options['ai_hints']:
-                if not key and options['ai_provider'] != 'chatgpt':
-                    raise HelperError(state['key_error'] or 'Añade tu clave de OpenAI en Herramientas → Spanish Helper, o desactiva las pistas con IA para usar el diccionario.')
-                return ai_request(ai_hint, card_context, key, options)
+                return ai_request(ai_hint, card_context, options)
             if options['online_dictionary']:
                 return dictionary_hint(card_context.word)
             raise HelperError('No hay una pista local. Añade un campo «Ejemplo» o activa el diccionario o la IA en Herramientas → Spanish Helper.')
@@ -242,18 +222,12 @@ def settings():
         form.addRow(box)
         checks[name] = box
     edits = {}
-    provider = QComboBox()
-    provider.setObjectName('aiProvider')
-    provider.addItem('Suscripción de ChatGPT (sin clave API)', 'chatgpt')
-    provider.addItem('Clave API (facturación aparte)', 'api_key')
-    provider.setCurrentIndex(0 if options['ai_provider'] == 'chatgpt' else 1)
-    form.addRow('Usar IA con', provider)
     profile = mw.pm.profileFolder()
     account_picker, model_picker = QComboBox(), QComboBox()
     model_picker.setObjectName('chatgptModel')
     model_picker.addItem('Automático: modelo disponible del plan', options['chatgpt_model'])
     account_picker.addItem('Añadir una cuenta', '')
-    auth_status = QLabel('Conecta tu cuenta para usar el plan sin créditos API adicionales.')
+    auth_status = QLabel('Conecta tu cuenta para usar tu suscripción de ChatGPT.')
     auth_status.setWordWrap(True)
     try:
         saved = chatgpt.accounts(profile)
@@ -300,7 +274,6 @@ def settings():
         mw.taskman.run_in_background(work, complete)
     def connected(result):
         auth_status.setText('Using ChatGPT plan · ' + result['identity']['label'])
-        provider.setCurrentIndex(0)
         account_picker.blockSignals(True)
         account_picker.clear(); account_picker.addItem('Añadir una cuenta', '')
         saved = chatgpt.accounts(profile)
@@ -310,7 +283,7 @@ def settings():
         account_picker.blockSignals(False)
         fill_models(result['models'])
         if result['identity']['first']:
-            showInfo('You’re using your ChatGPT plan.\nLas solicitudes de IA usan los límites de tu plan; no una clave API. Puedes gestionar el uso en los ajustes de ChatGPT.', parent=dialog)
+            showInfo('You’re using your ChatGPT plan.\nLas solicitudes de IA usan los límites de tu plan. Puedes gestionar el uso en los ajustes de ChatGPT.', parent=dialog)
     def start_sign_in():
         selected = account_picker.currentData() or ''
         def work():
@@ -335,73 +308,20 @@ def settings():
     manage.clicked.connect(lambda: __import__('webbrowser').open(chatgpt.USAGE_URL))
     for name, label in [('word_field', 'Campo español (vacío = automático)'),
                         ('translation_field', 'Campo de traducción (vacío = automático)'),
-                        ('example_field', 'Campo de ejemplo (opcional)'), ('hint_field', 'Campo de pista (opcional)'),
-                        ('model', 'Modelo para pistas'), ('check_model', 'Modelo para comprobar (económico)')]:
+                        ('example_field', 'Campo de ejemplo (opcional)'), ('hint_field', 'Campo de pista (opcional)')]:
         edit = QLineEdit(str(options[name]))
         form.addRow(label, edit)
         edits[name] = edit
-    api_key()
-    key = QLineEdit(state['key'])
-    key.setObjectName('apiKey')
-    key.setEchoMode(QLineEdit.EchoMode.Password)
-    key.setPlaceholderText('Introduce la clave una vez; o usa OPENAI_API_KEY')
-    key_row = QHBoxLayout()
-    key_row.addWidget(key)
-    forget = QPushButton('Olvidar al guardar')
-    forget.setObjectName('forgetApiKey')
-    forget.setToolTip('Elimina la clave de este perfil en Windows al pulsar Guardar. Cancelar no cambia la clave guardada.')
-    key_row.addWidget(forget)
-    form.addRow('Clave de OpenAI', key_row)
-    remember = QCheckBox('Recordar la clave en este equipo (Windows)')
-    remember.setObjectName('rememberApiKey')
-    remember.setChecked(bool(options['remember_api_key']) and credentials.supported())
-    remember.setEnabled(credentials.supported())
-    remember.setToolTip('Se guarda en el Administrador de credenciales de Windows para este perfil. Desmarca y guarda para usarla solo en esta sesión.')
-    form.addRow(remember)
-    def provider_changed():
-        use_plan = provider.currentData() == 'chatgpt'
-        for field in (account_picker, model_picker, auth_row, auth_status):
-            form.setRowVisible(field, use_plan)
-        for field in (key_row, remember, edits['model'], edits['check_model']):
-            form.setRowVisible(field, not use_plan)
-    provider.currentIndexChanged.connect(provider_changed)
-    provider_changed()
-    def forget_on_save():
-        key.clear()
-        remember.setChecked(False)
-    forget.clicked.connect(forget_on_save)
-    if state['key_error']:
-        warning = QLabel(state['key_error'])
-        warning.setWordWrap(True)
-        layout.addWidget(warning)
-    privacy = QLabel('Comprobar envía a OpenAI la palabra, tu traducción y el ejemplo.\nChatGPT usa los límites de tu plan; Clave API usa facturación separada. No se cambia de método automáticamente.\nLas sesiones ChatGPT se protegen con Windows y las claves API con su Administrador de credenciales.\nNo se guardan secretos en la configuración ni se sincronizan con Anki. La revisión no modifica tus tarjetas.')
+    privacy = QLabel('Comprobar envía a OpenAI la palabra, tu traducción y el ejemplo.\nLas solicitudes de IA usan tu suscripción de ChatGPT y están sujetas a sus límites.\nLa conexión se recuerda de forma segura con Windows.\nNo se guardan secretos en la configuración ni se sincronizan con Anki. La revisión no modifica tus tarjetas.')
     privacy.setWordWrap(True)
     layout.addWidget(privacy)
     buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
-    def accept_settings():
-        try:
-            if provider.currentData() != 'chatgpt' and credentials.supported():
-                if remember.isChecked() and key.text().strip():
-                    credentials.save_key(mw.pm.profileFolder(), key.text().strip())
-                else:
-                    credentials.delete_key(mw.pm.profileFolder())
-        except credentials.CredentialStoreError as error:
-            showWarning(str(error), parent=dialog)
-            return
-        dialog.accept()
-    buttons.accepted.connect(accept_settings)
+    buttons.accepted.connect(dialog.accept)
     buttons.rejected.connect(dialog.reject)
     outer.addWidget(buttons)
     if dialog.exec():
         options.update({name: box.isChecked() for name, box in checks.items()})
         options.update({name: edit.text().strip() for name, edit in edits.items()})
-        options['model'] = options['model'] or DEFAULTS['model']
-        options['check_model'] = options['check_model'] or DEFAULTS['check_model']
-        state['key'] = key.text().strip()
-        state['key_loaded'] = True
-        state['key_error'] = ''
-        options['remember_api_key'] = remember.isChecked()
-        options['ai_provider'] = provider.currentData()
         options['chatgpt_model'] = model_picker.currentData() or ''
         mw.addonManager.writeConfig(__name__, options)
         hint_cache.clear()
@@ -411,9 +331,6 @@ def settings():
 
 
 def profile_closed():
-    state['key'] = ''
-    state['key_loaded'] = False
-    state['key_error'] = ''
     hint_cache.clear()
     check_cache.clear()
     state_changed('deckBrowser', 'review')

@@ -15,6 +15,9 @@ if (Test-Path -LiteralPath $taskDestination) {
 }
 New-Item -ItemType Directory -Path $taskDestination -Force | Out-Null
 Get-ChildItem -LiteralPath $taskSource | Where-Object { $_.Name -notin @('__pycache__','user_files') } | Copy-Item -Destination $taskDestination -Recurse -Force
+# Obsolete API-key support was backed up above; subscription-only updates remove it.
+$taskObsoleteCredentials = Join-Path $taskDestination 'credentials.py'
+if (Test-Path -LiteralPath $taskObsoleteCredentials) { Remove-Item -LiteralPath $taskObsoleteCredentials }
 $taskMetaPath = Join-Path $taskDestination 'meta.json'
 if (-not (Test-Path -LiteralPath $taskMetaPath)) {
     $taskMeta = @{ name = 'Spanish Helper - Pronunciation, hints and translation checks'; disabled = $false }

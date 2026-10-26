@@ -72,9 +72,9 @@ const nativeCSS = ankiStyle ? fs.readFileSync(ankiStyle, 'utf8') : '';
     await mount('next');
     assert.equal(await page.locator('#check-panel').isVisible(), false);
     await checkButton.click();
-    await receive({event:'error',token:'next',action:'check',message:'Añade tu clave de OpenAI en Herramientas → Spanish Helper.'});
+    await receive({event:'error',token:'next',action:'check',message:'Conecta ChatGPT en Herramientas → Spanish Helper.'});
     assert.equal(await checkButton.isEnabled(),true);
-    assert.equal(await page.getByText('Añade tu clave de OpenAI en Herramientas → Spanish Helper.').isVisible(),true);
+    assert.equal(await page.getByText('Conecta ChatGPT en Herramientas → Spanish Helper.').isVisible(),true);
     // Existing selection behavior must continue working for audio.
     await page.evaluate(() => window.getSelection().removeAllRanges());
     await page.getByRole('button',{name:'Pronunciar',exact:true}).click();

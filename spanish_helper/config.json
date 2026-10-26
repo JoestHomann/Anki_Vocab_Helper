@@ -4,13 +4,9 @@
   "example_field": "",
   "hint_field": "",
   "translation_field": "",
-  "check_model": "gpt-6-luna",
   "online_audio": true,
   "online_dictionary": true,
   "ai_hints": false,
-  "ai_provider": "chatgpt",
   "chatgpt_model": "",
-  "remember_api_key": true,
-  "model": "gpt-4.1-mini",
   "slow_audio": false
 }
