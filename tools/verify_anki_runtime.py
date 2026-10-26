@@ -20,13 +20,14 @@ os.add_dll_directory(str(ANKI / 'app_packages/pywin32_system32'))
 os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 
 import aqt
-from aqt.qt import QApplication, QMainWindow, QMenu, QDialog, QTimer
+from aqt.qt import QApplication, QMainWindow, QMenu, QDialog, QTimer, QLineEdit, QCheckBox, QPushButton, QDialogButtonBox
 from aqt.reviewer import Reviewer
 from anki.buildinfo import version
 
 app = QApplication([])
 window = QMainWindow()
 window.form = SimpleNamespace(menuTools=QMenu(window))
+window.pm = SimpleNamespace(profileFolder=lambda: str(ROOT / 'output/test-profile-one'))
 options = json.loads((ROOT / 'spanish_helper/config.json').read_text())
 window.addonManager = SimpleNamespace(getConfig=lambda name: options.copy(), writeConfig=lambda name, value: options.update(value))
 jobs = []
@@ -42,6 +43,13 @@ spec = importlib.util.spec_from_file_location('spanish_helper', ROOT / 'spanish_
 addon = importlib.util.module_from_spec(spec)
 sys.modules['spanish_helper'] = addon
 spec.loader.exec_module(addon)
+
+# This integration harness never reads or changes real Windows credentials.
+saved_keys = {}
+patch.object(addon.credentials, 'supported', return_value=True).start()
+patch.object(addon.credentials, 'load_key', side_effect=lambda profile: saved_keys.get(profile, '')).start()
+patch.object(addon.credentials, 'save_key', side_effect=lambda profile, key: saved_keys.__setitem__(profile, key)).start()
+patch.object(addon.credentials, 'delete_key', side_effect=lambda profile: saved_keys.pop(profile, None)).start()
 
 
 def card(word='ahorrar'):
@@ -204,4 +212,64 @@ addon.profile_closed()
 assert addon.state['key'] == ''
 assert not addon.check_cache
 print('PASS: session key cleared on profile close')
+
+
+def run_settings(edit, save=True):
+    def interact():
+        dialog = next(w for w in app.topLevelWidgets() if isinstance(w, QDialog) and w.isVisible())
+        edit(dialog)
+        button = QDialogButtonBox.StandardButton.Save if save else QDialogButtonBox.StandardButton.Cancel
+        dialog.findChild(QDialogButtonBox).button(button).click()
+    QTimer.singleShot(0, interact)
+    addon.settings()
+
+
+window.state = 'deckBrowser'
+test_profile = window.pm.profileFolder()
+with patch.dict(os.environ, {}, clear=True):
+    run_settings(lambda dialog: dialog.findChild(QLineEdit, 'apiKey').setText('synthetic-persistent-key'))
+    assert saved_keys[test_profile] == 'synthetic-persistent-key'
+    assert 'synthetic-persistent-key' not in json.dumps(options)
+    addon.profile_closed()
+    assert addon.state['key'] == ''
+    assert addon.api_key() == 'synthetic-persistent-key'
+    # Profiles must never inherit one another's saved key.
+    addon.profile_closed()
+    window.pm.profileFolder = lambda: str(ROOT / 'output/test-profile-two')
+    assert addon.api_key() == ''
+    addon.profile_closed()
+    window.pm.profileFolder = lambda: test_profile
+    assert addon.api_key() == 'synthetic-persistent-key'
+    # Canceling even after pressing Forget must leave the stored key unchanged.
+    run_settings(lambda dialog: dialog.findChild(QPushButton, 'forgetApiKey').click(), save=False)
+    assert saved_keys[test_profile] == 'synthetic-persistent-key'
+    run_settings(lambda dialog: dialog.findChild(QPushButton, 'forgetApiKey').click())
+    assert test_profile not in saved_keys and not addon.state['key'] and not options['remember_api_key']
+    def session_only(dialog):
+        dialog.findChild(QLineEdit, 'apiKey').setText('synthetic-session-key')
+        dialog.findChild(QCheckBox, 'rememberApiKey').setChecked(False)
+    run_settings(session_only)
+    assert addon.api_key() == 'synthetic-session-key' and test_profile not in saved_keys
+    addon.profile_closed()
+    assert addon.api_key() == ''
+    # A storage error keeps the dialog open and does not report a successful save.
+    original_options = options.copy()
+    def attempt_failed_save():
+        dialog = next(w for w in app.topLevelWidgets() if isinstance(w, QDialog) and w.isVisible())
+        dialog.findChild(QLineEdit, 'apiKey').setText('synthetic-failed-key')
+        dialog.findChild(QCheckBox, 'rememberApiKey').setChecked(True)
+        dialog.findChild(QDialogButtonBox).button(QDialogButtonBox.StandardButton.Save).click()
+        assert dialog.isVisible()
+        dialog.reject()
+    with patch.object(addon.credentials, 'save_key', side_effect=addon.credentials.CredentialStoreError('Test storage failure')), patch.object(addon, 'showWarning') as warning:
+        QTimer.singleShot(0, attempt_failed_save)
+        addon.settings()
+        warning.assert_called_once()
+    assert options == original_options and test_profile not in saved_keys
+    assert 'synthetic-failed-key' not in json.dumps(options)
+with patch.dict(os.environ, {'OPENAI_API_KEY': 'synthetic-environment-key'}, clear=True):
+    addon.profile_closed()
+    assert addon.api_key() == 'synthetic-environment-key'
+addon.profile_closed()
+print('PASS: settings save/restore, profile isolation, cancel, forget, session-only mode, storage errors and environment fallback; keys stay out of config')
 print('Anki runtime:', version)

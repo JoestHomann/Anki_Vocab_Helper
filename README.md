@@ -24,7 +24,9 @@ For an existing local installation, add `-Update`. The installer backs up the ol
 
 ## Translation checks
 
-Open **Tools → Spanish Helper…** and enter your OpenAI API key for this profile session, or set `OPENAI_API_KEY` before launching Anki. Checking works independently of the **Generar pistas B1 con OpenAI** checkbox. You need API billing/credit; a ChatGPT subscription does not include API usage. No key is saved in the add-on configuration.
+Open **Tools → Spanish Helper…**, enter your OpenAI API key once, leave **Recordar la clave en este equipo (Windows)** checked, and save. The add-on stores it in Windows Credential Manager for this Anki profile and restores it automatically when needed after restarting Anki. It is tied to your Windows account and this computer, not saved in add-on configuration, Anki sync, exported decks, backups of the add-on, or Git. Checking works independently of the **Generar pistas B1 con OpenAI** checkbox. You still need API billing/credit; a ChatGPT subscription does not include API usage.
+
+To forget it, click **Olvidar al guardar** and then **Save**. Cancel leaves the saved key unchanged. To use a key only for the current session, uncheck **Recordar** and save; any key previously saved for this profile is removed from Credential Manager. Storage failures are reported and keep the settings dialog open. `OPENAI_API_KEY` remains an optional fallback and is never changed by the add-on; deleting the saved key does not delete an environment variable you configured yourself. On other operating systems, secure remembering is unavailable, so use a session key or the environment variable. Keys are not copied automatically from an already-running older add-on: enter yours once after installing this update.
 
 The checker sends only the Spanish word, your saved translation (up to 500 characters), and your card's example if present (up to 500 characters). It does not use the existing deck-hint library as evidence: those hints were prepared using the very translations being checked. The request uses `store: false`. Checks run only on an explicit click/shortcut after revealing the answer. Repeated checks of the same pair/model/example use a profile-session cache; edits and model changes select a new cache entry. Closing a profile clears the cache and session key.
 
@@ -51,7 +53,7 @@ The helper tries these in order:
 
 The current-deck hints work without an API key or Internet connection. See `output/audit/coverage.md` for the report. New cards added after the 19 October 2026 snapshot are outside this completed coverage audit and use the regular lookup fallback.
 
-For B1 explanations of words outside the local library, enable **Generar pistas B1 con OpenAI**, then enter an API key in the settings dialog. It stays in memory only for the current Anki profile session. Alternatively, set `OPENAI_API_KEY` locally before launching Anki. API billing is separate from a ChatGPT subscription. The model is configurable; default `gpt-4.1-mini`. No paid requests happen merely by opening a card.
+For B1 explanations of words outside the local library, enable **Generar pistas B1 con OpenAI**, then enter an API key in the settings dialog. On Windows, **Recordar** securely saves it for reuse by this profile. Alternatively, use session-only mode or set `OPENAI_API_KEY` locally before launching Anki. API billing is separate from a ChatGPT subscription. The model is configurable; default `gpt-4.1-mini`. No paid requests happen merely by opening a card.
 
 If a word has no local hint, dictionary example, or Spanish definition, the helper explains how to add an `Ejemplo` field or enable AI. Inflected words and regional expressions may be absent from the dictionary. Select the base form where possible. The local library matches articles (e.g. `la manzana`) but does not pretend to be a complete dictionary or automatic conjugation engine.
 

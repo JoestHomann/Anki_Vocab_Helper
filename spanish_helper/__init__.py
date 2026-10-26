@@ -10,11 +10,13 @@ from dataclasses import replace
 from aqt import mw, gui_hooks
 from aqt.reviewer import Reviewer
 from aqt.qt import (QAction, QCheckBox, QDialog, QDialogButtonBox, QFormLayout,
-                    QLabel, QLineEdit, QVBoxLayout)
+                    QHBoxLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout)
+from aqt.utils import showWarning
 from aqt.sound import av_player
 from anki.sound import SoundOrVideoTag, TTSTag
 
 from .core import extract_context, is_current, local_hint, plain_text
+from . import credentials
 from .services import HelperError, ai_hint, check_translation, dictionary_hint, get_audio, get_example_audio
 
 ROOT = Path(__file__).parent
@@ -23,13 +25,27 @@ DECK_HINTS = json.loads((ROOT / 'deck_hints.json').read_text(encoding='utf-8')) 
 DEFAULTS = json.loads((ROOT / 'config.json').read_text(encoding='utf-8'))
 CSS = (ROOT / 'web' / 'overlay.css').read_text(encoding='utf-8')
 JS = (ROOT / 'web' / 'overlay.js').read_text(encoding='utf-8')
-state = {'token': '', 'context': None, 'key': '', 'busy': set(), 'hint_example': ''}
+state = {'token': '', 'context': None, 'key': '', 'busy': set(), 'hint_example': '',
+         'key_loaded': False, 'key_error': ''}
 hint_cache = {}
 check_cache = {}
 
 
 def config():
     return {**DEFAULTS, **(mw.addonManager.getConfig(__name__) or {})}
+
+
+def api_key():
+    """Restore only this profile's saved key, once per profile session."""
+    if not state['key_loaded']:
+        state['key_loaded'] = True
+        state['key_error'] = ''
+        if not state['key'] and config()['remember_api_key'] and credentials.supported():
+            try:
+                state['key'] = credentials.load_key(mw.pm.profileFolder())
+            except credentials.CredentialStoreError as error:
+                state['key_error'] = str(error)
+    return state['key'] or os.environ.get('OPENAI_API_KEY', '').strip()
 
 
 def send(event, **values):
@@ -104,7 +120,7 @@ def handle_message(handled, message, context):
             state['hint_example'] = ''
             state['busy'].discard('example_audio')
         state['busy'].add(action)
-        key = state['key'] or os.environ.get('OPENAI_API_KEY', '')
+        key = api_key() if action in ('hint', 'check') else ''
         cache_key = (card_context, options['ai_hints'], options['model'])
         check_key = (card_context.word, card_context.meaning, card_context.example, options['check_model'])
 
@@ -112,6 +128,8 @@ def handle_message(handled, message, context):
             if action == 'check':
                 if check_key in check_cache:
                     return check_cache[check_key]
+                if not key and state['key_error']:
+                    raise HelperError(state['key_error'])
                 return check_translation(card_context, key, options['check_model'])
             if action == 'pronounce':
                 return get_audio(card_context.word, ROOT / 'user_files' / 'audio', options['slow_audio'])
@@ -124,7 +142,7 @@ def handle_message(handled, message, context):
                 return hint_cache[cache_key]
             if options['ai_hints']:
                 if not key:
-                    raise HelperError('Añade tu clave de OpenAI en Herramientas → Spanish Helper, o desactiva las pistas con IA para usar el diccionario.')
+                    raise HelperError(state['key_error'] or 'Añade tu clave de OpenAI en Herramientas → Spanish Helper, o desactiva las pistas con IA para usar el diccionario.')
                 return ai_hint(card_context, key, options['model'])
             if options['online_dictionary']:
                 return dictionary_hint(card_context.word)
@@ -206,15 +224,48 @@ def settings():
         edit = QLineEdit(str(options[name]))
         form.addRow(label, edit)
         edits[name] = edit
+    api_key()
     key = QLineEdit(state['key'])
+    key.setObjectName('apiKey')
     key.setEchoMode(QLineEdit.EchoMode.Password)
-    key.setPlaceholderText('Solo para esta sesión; o usa OPENAI_API_KEY')
-    form.addRow('Clave de OpenAI', key)
-    privacy = QLabel('Comprobar envía a OpenAI la palabra española, tu traducción y el ejemplo, si existe.\nRequiere una clave API y saldo; no usa la suscripción de ChatGPT. Las pistas con IA pueden seguir desactivadas.\nLa revisión puede equivocarse. No modifica tus tarjetas. La clave no se guarda en disco.\nEl audio se guarda localmente. Los ejemplos del diccionario proceden de Wiktionary (CC BY-SA).')
+    key.setPlaceholderText('Introduce la clave una vez; o usa OPENAI_API_KEY')
+    key_row = QHBoxLayout()
+    key_row.addWidget(key)
+    forget = QPushButton('Olvidar al guardar')
+    forget.setObjectName('forgetApiKey')
+    forget.setToolTip('Elimina la clave de este perfil en Windows al pulsar Guardar. Cancelar no cambia la clave guardada.')
+    key_row.addWidget(forget)
+    form.addRow('Clave de OpenAI', key_row)
+    remember = QCheckBox('Recordar la clave en este equipo (Windows)')
+    remember.setObjectName('rememberApiKey')
+    remember.setChecked(bool(options['remember_api_key']) and credentials.supported())
+    remember.setEnabled(credentials.supported())
+    remember.setToolTip('Se guarda en el Administrador de credenciales de Windows para este perfil. Desmarca y guarda para usarla solo en esta sesión.')
+    form.addRow(remember)
+    def forget_on_save():
+        key.clear()
+        remember.setChecked(False)
+    forget.clicked.connect(forget_on_save)
+    if state['key_error']:
+        warning = QLabel(state['key_error'])
+        warning.setWordWrap(True)
+        layout.addWidget(warning)
+    privacy = QLabel('Comprobar envía a OpenAI la palabra española, tu traducción y el ejemplo, si existe.\nRequiere una clave API y saldo; no usa la suscripción de ChatGPT. Las pistas con IA pueden seguir desactivadas.\nRecordar guarda la clave en el Administrador de credenciales de Windows para este perfil y equipo.\nLa clave no se guarda en la configuración ni se sincroniza con Anki. La revisión no modifica tus tarjetas.\nEl audio se guarda localmente. Los ejemplos del diccionario proceden de Wiktionary (CC BY-SA).')
     privacy.setWordWrap(True)
     layout.addWidget(privacy)
     buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
-    buttons.accepted.connect(dialog.accept)
+    def accept_settings():
+        try:
+            if credentials.supported():
+                if remember.isChecked() and key.text().strip():
+                    credentials.save_key(mw.pm.profileFolder(), key.text().strip())
+                else:
+                    credentials.delete_key(mw.pm.profileFolder())
+        except credentials.CredentialStoreError as error:
+            showWarning(str(error), parent=dialog)
+            return
+        dialog.accept()
+    buttons.accepted.connect(accept_settings)
     buttons.rejected.connect(dialog.reject)
     layout.addWidget(buttons)
     if dialog.exec():
@@ -223,6 +274,9 @@ def settings():
         options['model'] = options['model'] or DEFAULTS['model']
         options['check_model'] = options['check_model'] or DEFAULTS['check_model']
         state['key'] = key.text().strip()
+        state['key_loaded'] = True
+        state['key_error'] = ''
+        options['remember_api_key'] = remember.isChecked()
         mw.addonManager.writeConfig(__name__, options)
         hint_cache.clear()
         check_cache.clear()
@@ -232,6 +286,8 @@ def settings():
 
 def profile_closed():
     state['key'] = ''
+    state['key_loaded'] = False
+    state['key_error'] = ''
     hint_cache.clear()
     check_cache.clear()
     state_changed('deckBrowser', 'review')
