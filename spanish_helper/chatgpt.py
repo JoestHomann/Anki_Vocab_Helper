@@ -274,6 +274,7 @@ def response(profile, payload):
     try:
         with urlopen(request, timeout=60) as stream:
             size, event_lines = 0, []
+            output_items, output_parts = {}, {}
             for line in stream:
                 size += len(line)
                 if size > 2_000_000:
@@ -285,9 +286,24 @@ def response(profile, payload):
                 if not event_lines:
                     continue
                 event = json.loads(b'\n'.join(event_lines)); event_lines = []
-                if event.get('type') == 'response.completed':
-                    return json.dumps(event['response']).encode(), 'application/json'
-                if event.get('type') in ('response.failed', 'response.incomplete', 'error'):
+                kind = event.get('type')
+                # Subscription streams may leave the terminal output array empty.
+                # Retain finalized items/parts, but expose them only after completion.
+                if kind == 'response.output_item.done':
+                    output_items[event['output_index']] = event['item']
+                elif kind in ('response.output_text.done', 'response.content_part.done'):
+                    part = event['part'] if kind == 'response.content_part.done' else {'type': 'output_text', 'text': event['text']}
+                    output_parts.setdefault(event['output_index'], {})[event['content_index']] = part
+                elif kind == 'response.completed':
+                    completed = event['response']
+                    if not completed.get('output'):
+                        for index, parts in output_parts.items():
+                            item = output_items.setdefault(index, {'type': 'message', 'role': 'assistant'})
+                            if not item.get('content'):
+                                item['content'] = [parts[key] for key in sorted(parts)]
+                        completed['output'] = [output_items[index] for index in sorted(output_items)]
+                    return json.dumps(completed).encode(), 'application/json'
+                if kind in ('response.failed', 'response.incomplete', 'error'):
                     raise AuthError('ChatGPT did not complete the check. Check ChatGPT → Settings → Usage; a plan or app limit may have been reached.')
     except HTTPError as error:
         if error.code in (403, 429):

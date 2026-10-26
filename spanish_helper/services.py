@@ -118,15 +118,15 @@ def ai_hint(context: CardContext, model: str, *, requester) -> dict:
             raise ValueError()
         return {'example': plain_text(result['example'])[:500], 'explanation': plain_text(result['explanation'])[:600], 'source': 'Español B1 · generado con IA'}
     except (ValueError, KeyError, TypeError, AttributeError):
-        raise HelperError('La IA no ha podido crear una pista válida. Vuelve a intentarlo.') from None
+        raise HelperError('ChatGPT returned an invalid hint. Try again or choose a different plan model in Tools → Spanish Helper.') from None
 
 
 def check_translation(context: CardContext, model: str, *, requester) -> dict:
     """Assess the saved pair independently; never use its own derived hint as evidence."""
     if not context.word.strip() or not context.meaning.strip():
-        raise HelperError('Falta la palabra española o la traducción. Configura sus campos en Herramientas → Spanish Helper.')
+        raise HelperError('The Spanish word or saved translation is missing. Set their fields in Tools → Spanish Helper.')
     if len(context.word) > 180 or len(context.meaning) > 500:
-        raise HelperError('La comprobación admite una palabra o frase corta y una traducción de hasta 500 caracteres.')
+        raise HelperError('Checks support a word or short phrase and a translation of up to 500 characters.')
     schema = {
         'type': 'object',
         'properties': {
@@ -177,4 +177,4 @@ def check_translation(context: CardContext, model: str, *, requester) -> dict:
         return {'verdict': result['verdict'], 'explanation': explanation[:900], 'suggestion': suggestion[:500],
                 'saved': context.meaning, 'source': model + ' · revisión con IA'}
     except (ValueError, KeyError, TypeError, AttributeError):
-        raise HelperError('La IA no ha podido completar una comprobación válida. Vuelve a intentarlo.') from None
+        raise HelperError('ChatGPT returned an invalid translation check. Try again or choose a different plan model in Tools → Spanish Helper.') from None

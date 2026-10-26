@@ -18,6 +18,8 @@ if 'spanish_helper' not in sys.modules:
     package = types.ModuleType('spanish_helper'); package.__path__ = [str(ROOT / 'spanish_helper')]
     sys.modules['spanish_helper'] = package
 plan = importlib.import_module('spanish_helper.chatgpt')
+services = importlib.import_module('spanish_helper.services')
+core = importlib.import_module('spanish_helper.core')
 windows = importlib.import_module('spanish_helper.windows_auth')
 FIXTURE = json.loads((ROOT / 'tests/fixtures/oidc_rs256.json').read_text())
 
@@ -70,6 +72,57 @@ class ChatGPTTests(unittest.TestCase):
             with patch.object(plan, '_access', return_value='synthetic'), patch.object(plan, 'urlopen', return_value=io.BytesIO(content)):
                 with self.assertRaises(plan.AuthError):
                     plan.response('test-profile', {'model':'test','input':'word'})
+
+    def stream_response(self, events):
+        stream = io.BytesIO(b''.join(b'data: ' + json.dumps(event).encode() + b'\n\n' for event in events))
+        with patch.object(plan, '_access', return_value='synthetic'), patch.object(plan, 'urlopen', return_value=stream):
+            return plan.response('test-profile', {'model':'test','input':'synthetic vocabulary'})
+
+    def test_subscription_check_keeps_finalized_output_when_terminal_output_is_empty(self):
+        text = json.dumps({'verdict':'correct','explanation':'Es una traducción válida.','suggestion':''})
+        part = {'type':'output_text','text':text}
+        item = {'type':'message','role':'assistant','content':[part]}
+        events = [
+            {'type':'response.output_text.done','output_index':0,'content_index':0,'text':text},
+            {'type':'response.content_part.done','output_index':0,'content_index':0,'part':part},
+            {'type':'response.output_item.done','output_index':0,'item':item},
+            {'type':'response.completed','response':{'status':'completed','output':[]}},
+        ]
+        raw, _ = self.stream_response(events)
+        self.assertEqual(json.loads(raw)['output'], [item])
+        # Exercise the actual translation parser too; duplicated event text is invalid JSON.
+        result = services.check_translation(core.CardContext('hola', meaning='Hallo'), 'test',
+            requester=lambda payload: (raw, 'application/json'))
+        self.assertEqual(result['verdict'], 'correct')
+
+    def test_completed_text_and_content_parts_reconstruct_messages_in_order(self):
+        events = [
+            {'type':'response.output_text.done','output_index':2,'content_index':0,'text':'second'},
+            {'type':'response.content_part.done','output_index':1,'content_index':1,'part':{'type':'output_text','text':'tail'}},
+            {'type':'response.output_text.done','output_index':1,'content_index':0,'text':'first'},
+            {'type':'response.completed','response':{'status':'completed','output':[]}},
+        ]
+        raw, _ = self.stream_response(events)
+        self.assertEqual([[part['text'] for part in item['content']] for item in json.loads(raw)['output']],
+                         [['first','tail'],['second']])
+
+    def test_finalized_items_do_not_bypass_failed_or_interrupted_streams(self):
+        done = {'type':'response.output_text.done','output_index':0,'content_index':0,'text':'{}'}
+        for terminal in [[], [{'type':'response.failed'}], [{'type':'response.incomplete'}]]:
+            with self.subTest(terminal=terminal), self.assertRaises(plan.AuthError):
+                self.stream_response([done] + terminal)
+
+    def test_authoritative_refusal_is_not_replaced_by_earlier_text(self):
+        refusal = {'type':'message','content':[{'type':'refusal','refusal':'Declined'}]}
+        events = [
+            {'type':'response.output_text.done','output_index':0,'content_index':0,'text':'{}'},
+            {'type':'response.completed','response':{'status':'completed','output':[refusal]}},
+        ]
+        raw, _ = self.stream_response(events)
+        self.assertEqual(json.loads(raw)['output'], [refusal])
+        with self.assertRaises(services.HelperError):
+            services.check_translation(core.CardContext('hola', meaning='Hallo'), 'test',
+                requester=lambda payload: (raw, 'application/json'))
 
     def test_refresh_rotates_tokens_and_never_uses_dynamic_client(self):
         account = dict(client_id='issued-client',access_token='old-access',refresh_token='old-refresh',expires_at=0,scopes=['chatgpt.tokens.use.direct'])
