@@ -107,6 +107,9 @@ const nativeCSS = ankiStyle ? fs.readFileSync(ankiStyle, 'utf8') : '';
     assert.equal(await exampleButton.isVisible(), false);
     await mount('new-card');
     assert.equal(await exampleButton.isVisible(), false);
+    await page.evaluate(css => window.SpanishHelper.mount({token:'plan-card',word:'hola',answerShown:true,usingChatGPT:true},css),css);
+    assert.equal(await page.getByText('Using ChatGPT plan ·').isVisible(),true);
+    assert.equal(await page.getByRole('link',{name:'Manage usage',exact:true}).getAttribute('href'),'https://chatgpt.com/settings/usage');
     assert.deepEqual(errors, []);
     console.log('PASS: native themes, responsive toolbar, translation checks and example speaker: visibility, selected-text isolation, busy state, errors, stale replies and card reset');
   } finally { await browser.close(); }

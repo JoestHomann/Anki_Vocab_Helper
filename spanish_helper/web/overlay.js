@@ -80,8 +80,10 @@
       '<button type="button" id="pronounce" title="Pronunciar la palabra o selección (Alt+P)" aria-label="Pronunciar" aria-keyshortcuts="Alt+P">' + speaker + '<span id="pronounce-label">Pronunciar</span><kbd aria-hidden="true">Alt P</kbd></button>' +
       '<button type="button" id="hint" aria-label="Pista" title="Mostrar una pista (Alt+H)" aria-keyshortcuts="Alt+H" aria-controls="hint-panel" aria-expanded="false">' + bulb + '<span id="hint-label">Pista</span><kbd aria-hidden="true">Alt H</kbd></button>' +
       '<button type="button" id="check" aria-label="Comprobar traducción" aria-keyshortcuts="Alt+C" aria-controls="check-panel" aria-expanded="false">' + check + '<span id="check-label">Comprobar</span><kbd aria-hidden="true">Alt C</kbd></button></div>' +
+      '<div class="plan-usage" id="plan-usage" hidden>Using ChatGPT plan · <a href="https://chatgpt.com/settings/usage" target="_blank" rel="noopener noreferrer">Manage usage</a></div>' +
       '<div id="status" role="status" aria-live="polite" aria-atomic="true"></div>';
     root.append(panel); document.body.append(host);
+    el('plan-usage').hidden = !next.usingChatGPT;
     el('check').title = next.answerShown ? 'Revisar tu traducción guardada con IA (Alt+C)' : 'Muestra primero la respuesta para comprobar tu traducción';
     for (const name of ['pronounce', 'example_audio', 'hint', 'check']) {
       el(name).addEventListener('pointerdown', captureSelection);

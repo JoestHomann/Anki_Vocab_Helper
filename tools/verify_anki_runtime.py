@@ -20,15 +20,18 @@ os.add_dll_directory(str(ANKI / 'app_packages/pywin32_system32'))
 os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 
 import aqt
-from aqt.qt import QApplication, QMainWindow, QMenu, QDialog, QTimer, QLineEdit, QCheckBox, QPushButton, QDialogButtonBox
+from aqt.qt import QApplication, QMainWindow, QMenu, QDialog, QTimer, QLineEdit, QCheckBox, QPushButton, QDialogButtonBox, QFontDatabase, QFont
 from aqt.reviewer import Reviewer
 from anki.buildinfo import version
 
 app = QApplication([])
+QFontDatabase.addApplicationFont('C:/Windows/Fonts/segoeui.ttf')
+app.setFont(QFont('Segoe UI', 9))
 window = QMainWindow()
 window.form = SimpleNamespace(menuTools=QMenu(window))
 window.pm = SimpleNamespace(profileFolder=lambda: str(ROOT / 'output/test-profile-one'))
 options = json.loads((ROOT / 'spanish_helper/config.json').read_text())
+options['ai_provider'] = 'api_key'
 window.addonManager = SimpleNamespace(getConfig=lambda name: options.copy(), writeConfig=lambda name, value: options.update(value))
 jobs = []
 window.taskman = SimpleNamespace(run_in_background=lambda task, done: jobs.append((task, done)))
@@ -50,6 +53,7 @@ patch.object(addon.credentials, 'supported', return_value=True).start()
 patch.object(addon.credentials, 'load_key', side_effect=lambda profile: saved_keys.get(profile, '')).start()
 patch.object(addon.credentials, 'save_key', side_effect=lambda profile, key: saved_keys.__setitem__(profile, key)).start()
 patch.object(addon.credentials, 'delete_key', side_effect=lambda profile: saved_keys.pop(profile, None)).start()
+patch.object(addon.chatgpt, 'accounts', return_value={'active': '', 'accounts': []}).start()
 
 
 def card(word='ahorrar'):
@@ -272,4 +276,28 @@ with patch.dict(os.environ, {'OPENAI_API_KEY': 'synthetic-environment-key'}, cle
     assert addon.api_key() == 'synthetic-environment-key'
 addon.profile_closed()
 print('PASS: settings save/restore, profile isolation, cancel, forget, session-only mode, storage errors and environment fallback; keys stay out of config')
+
+options['ai_provider'] = 'chatgpt'
+options['chatgpt_model'] = 'test-plan-model'
+with patch.object(addon.chatgpt, 'response', return_value=(json.dumps({'status':'completed','output':[{'content':[{'type':'output_text','text':json.dumps({'verdict':'correct','explanation':'Es una traducción válida.','suggestion':''})}]}]}).encode(), 'application/json')) as plan, patch.object(addon, 'api_key', side_effect=AssertionError('Paid API key was accessed')):
+    result = addon.ai_request(addon.check_translation, addon.state['context'] or addon.extract_context({'Spanish':'hola','Back':'Hallo'}, 'hola', options), '', options)
+    assert 'Using ChatGPT plan' in result['source']
+    assert plan.call_args.args[1]['model'] == 'test-plan-model'
+with patch.object(addon.chatgpt, 'response', side_effect=addon.chatgpt.AuthError('Plan limit')), patch.object(addon, 'api_key', side_effect=AssertionError('Paid fallback')):
+    try:
+        addon.ai_request(addon.check_translation, addon.extract_context({'Spanish':'hola','Back':'Hallo'}, 'hola', options), '', options)
+        raise AssertionError('Plan error was suppressed')
+    except addon.HelperError as error:
+        assert 'Plan limit' in str(error)
+print('PASS: ChatGPT plan transport is used without a paid API key; plan errors never trigger a paid fallback')
+def inspect_subscription_settings(dialog):
+    assert not dialog.findChild(QLineEdit, 'apiKey').isVisible()
+    button = dialog.findChild(QDialogButtonBox).button(QDialogButtonBox.StandardButton.Save)
+    assert button.isVisible()
+    (ROOT / 'output/screenshots').mkdir(parents=True, exist_ok=True)
+    dialog.grab().save(str(ROOT / 'output/screenshots/chatgpt-settings.png'))
+with patch.object(addon.credentials, 'save_key', side_effect=AssertionError('API vault changed')), patch.object(addon.credentials, 'delete_key', side_effect=AssertionError('API vault changed')):
+    run_settings(inspect_subscription_settings)
+assert options['ai_provider'] == 'chatgpt'
+print('PASS: subscription settings hide API-key controls, keep Save visible and leave saved API keys untouched')
 print('Anki runtime:', version)

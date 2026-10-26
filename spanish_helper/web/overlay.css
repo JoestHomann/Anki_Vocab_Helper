@@ -56,6 +56,9 @@ p { margin: 7px 0; overflow-wrap: anywhere; }
 .verdict[data-verdict="partial"]::before { background: var(--flag-2, #fb923c); }
 .verdict[data-verdict="incorrect"]::before { background: var(--state-learn, #dc2626); }
 .note { margin-bottom: 0; }
+.plan-usage { text-align: center; color: var(--sh-muted); font-size: 10px; padding: 0 12px 7px; }
+.plan-usage a { color: var(--fg-link, #1d4ed8); text-decoration: none; }
+.plan-usage a:hover { text-decoration: underline; }
 #status { width: min(560px, calc(100% - 32px)); margin: 0 auto; padding: 0 0 9px; color: var(--sh-muted); font-size: 12px; overflow-wrap: anywhere; }
 #status:empty { display: none; }
 #status[data-error="true"] { color: var(--accent-danger, #dc2626); }

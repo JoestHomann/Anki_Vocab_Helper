@@ -1,0 +1,13 @@
+{
+  "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InN5bnRoZXRpYy10ZXN0LWtleSJ9.eyJpc3MiOiJodHRwczovL2F1dGgub3BlbmFpLmNvbSIsImF1ZCI6InRlc3QtY2xpZW50Iiwic3ViIjoic3ludGhldGljLXRlc3QtYWNjb3VudCIsImVtYWlsIjoidGVzdEBleGFtcGxlLmludmFsaWQiLCJub25jZSI6InRlc3Qtbm9uY2UiLCJleHAiOjQxMDI0NDQ4MDB9.ZDjlLySdOUwWrpaIcpezdpM8_oc-1lbKZbx2fBgS1IRe1yBn348xf3DNkPMin1qnaQoMDAFmMPNZofDc51D_hRzq085Pz35QtdYyX1sPf0ZpiGRQ3Cgs5O0QyzGoAqaTD-ru0845zyixOHMWRjTW8iqhpyO0TDtyjXiuRNotBUvy09FugF2FSj1Q_jd-9GJMRthTehHHYk2xDiTr47erijxX_J1Dh3oXEKcTPfi__7PQFifk7kmJEDG4u_6P0FntTLloldGr8LMnw79uaxssRmYHQcW-j5FMsGpbar1q0Ao6pts6XtyDN1BROvPbi4SUZ-xv69FR41C6zss6S5oJzQ",
+  "jwks": {
+    "keys": [
+      {
+        "kty": "RSA",
+        "n": "wH677wa9TJe-MmqCwHbv0xNdojk_92eSCLRqOc_V49zvH9bftvklckYo6QJb7VNOkQgYLQrki6lQWXUwI5-FwgknTFPpBHhu9X8IIU3Xn_vlV4YhA2Lyb5A0casiuT4-6TPw_n2tAxaAH22SBeDbH9IvzV1MedefHiLfSCamH9Gqde5V7lac_mggDOq722nkWDAgmwkxNK-gF_SlucHHUYdGd9Imt3DUvCBfZ0NJ24spm_f0fLbzzTfEYFek5wUGNpIRL3jGLDdCrF8wswnyoT0p5PWN_xHFyKSvNQ4ck8aBoHQyNBSrBVe6ixZE-6agWpvZuqg0lN5bFyn9GdC03Q",
+        "e": "AQAB",
+        "kid": "synthetic-test-key"
+      }
+    ]
+  }
+}

@@ -103,7 +103,7 @@ def dictionary_hint(word: str) -> dict:
     raise HelperError('No encuentro un ejemplo ni una definición en español. Puedes añadir un campo «Ejemplo» o activar las pistas B1 con IA en Herramientas → Spanish Helper.')
 
 
-def ai_hint(context: CardContext, key: str, model: str) -> dict:
+def ai_hint(context: CardContext, key: str, model: str, requester=None) -> dict:
     schema = {'type': 'object', 'properties': {'example': {'type': 'string'}, 'explanation': {'type': 'string'}},
               'required': ['example', 'explanation'], 'additionalProperties': False}
     payload = {
@@ -113,7 +113,7 @@ def ai_hint(context: CardContext, key: str, model: str) -> dict:
         'max_output_tokens': 500,
         'text': {'format': {'type': 'json_schema', 'name': 'spanish_hint', 'strict': True, 'schema': schema}},
     }
-    data, _ = request_bytes('https://api.openai.com/v1/responses', payload, key)
+    data, _ = requester(payload) if requester else request_bytes('https://api.openai.com/v1/responses', payload, key)
     try:
         response = json.loads(data)
         text = ''.join(part.get('text', '') for item in response.get('output', [])
@@ -126,13 +126,13 @@ def ai_hint(context: CardContext, key: str, model: str) -> dict:
         raise HelperError('La IA no ha podido crear una pista válida. Vuelve a intentarlo.') from None
 
 
-def check_translation(context: CardContext, key: str, model: str) -> dict:
+def check_translation(context: CardContext, key: str, model: str, requester=None) -> dict:
     """Assess the saved pair independently; never use its own derived hint as evidence."""
     if not context.word.strip() or not context.meaning.strip():
         raise HelperError('Falta la palabra española o la traducción. Configura sus campos en Herramientas → Spanish Helper.')
     if len(context.word) > 180 or len(context.meaning) > 500:
         raise HelperError('La comprobación admite una palabra o frase corta y una traducción de hasta 500 caracteres.')
-    if not key.strip():
+    if not key.strip() and requester is None:
         raise HelperError('Añade tu clave de OpenAI en Herramientas → Spanish Helper para comprobar traducciones. No hace falta activar las pistas con IA.')
     schema = {
         'type': 'object',
@@ -167,7 +167,7 @@ def check_translation(context: CardContext, key: str, model: str) -> dict:
     # Avoid spending the short output budget on hidden reasoning for the default model.
     if model.startswith(('gpt-6', 'gpt-5.6')):
         payload['reasoning'] = {'effort': 'none'}
-    data, _ = request_bytes('https://api.openai.com/v1/responses', payload, key)
+    data, _ = requester(payload) if requester else request_bytes('https://api.openai.com/v1/responses', payload, key)
     try:
         response = json.loads(data)
         if response.get('status') != 'completed':
